@@ -1,7 +1,7 @@
 /** Apps Script backend for The Weekend Bite orders -> Google Sheets **/
-const SHEET_ID     = '13iM3dEuCnodgjFRoQcSGfBEDFmepRjoJRBRpQR7tmLk'; // your sheet
+const SHEET_ID     = '1JK3ybIsYrMhb3PifwmedKbQcY5Jy6IZnucRjY_Xc5aw'; // your sheet
 const SHEET_NAME   = 'Orders';                                         // tab name
-const NOTIFY_EMAIL = 'ibrahimnasser339@gmail.com';                     // your Gmail
+const NOTIFY_EMAIL = 'thewkndbitetorino@gmail.com';                     // your Gmail
 const TZ = 'Europe/Rome';
 
 /** Simple GET so you can open the /exec URL in a browser to test */
