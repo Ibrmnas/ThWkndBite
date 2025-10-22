@@ -1,2 +1,2 @@
 // Paste your Apps Script Web App URL between the quotes:
-window.WB_ENDPOINT = "https://script.google.com/macros/s/AKfycbzmgoQlDyzXWT1FxNS-1wl1au8xy-ZxjFZXPE2jmoXbg7ptSh7VCmqgQuhLwXsuy37W9A/exec"; // e.g., https://script.google.com/macros/s/AKfycbx.../exec
+window.WB_ENDPOINT = "https://script.google.com/macros/s/AKfycbwg8md1_d3h2t6BUrA3Z7i_Z8GGslGfqDViZHupUQ4zPnCj9HwZhYzrzyIay4z5ktwTNw/exec"; // e.g., https://script.google.com/macros/s/AKfycbx.../exec
