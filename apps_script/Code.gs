@@ -37,6 +37,7 @@ function doPost(e) {
       id,                                                  // Order ID
       data.name || '',                                     // Name
       data.phone || '',                                    // Phone
+      data.email || '',
       data.address || '',                                  // Address
       JSON.stringify(items),                               // Items JSON
       Number(total.toFixed(2)),                            // EstimatedTotal
@@ -54,6 +55,7 @@ function doPost(e) {
         <b>${id}</b><br>
         <b>Name:</b> ${escapeHtml(data.name)}<br>
         <b>Phone:</b> ${escapeHtml(data.phone)}<br>
+        <b>Email:</b> ${escapeHtml(data.email || '')}<br>
         <b>Address:</b> ${escapeHtml(data.address)}<br>
         <b>Notes:</b> ${escapeHtml(data.notes || '')}<br>
         <b>Allergies:</b> ${escapeHtml(allergies)}<br>
