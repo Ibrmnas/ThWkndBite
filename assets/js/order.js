@@ -137,6 +137,13 @@
       }
     }
 
+      const emailEl = document.getElementById('c-email');
+      if (!emailEl || !emailEl.value.trim() || !emailEl.checkValidity()) {
+        emailEl?.reportValidity();  // shows the built-in browser message
+        emailEl?.focus();
+      return;
+    }
+    
     const allergies = (document.getElementById('c-allergies')?.value || '').trim();
 
     const payload = {
