@@ -143,6 +143,7 @@
       name: document.getElementById('c-name').value.trim(),
       phone: document.getElementById('c-phone').value.trim(),
       address: document.getElementById('c-addr').value.trim(),
+      email: (document.getElementById('c-email')?.value || '').trim(),
       notes: (document.getElementById('c-notes').value || '').trim(),
       allergies, // <-- send as its own field (matches backend)
       items,
