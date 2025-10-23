@@ -1,72 +1,59 @@
-window.I18N_DICT = {
-  "en": {
-    "nav.home": "Home",
-    "nav.menu": "Menu",
-    "nav.order": "Order",
-    "nav.contact": "Contact",
-    "nav.faq": "FAQ",
-    "nav.about": "About",
-    "hero.kicker": "Fresh & Halal",
-    "hero.h1": "Homemade Lebanese Chicken Marinades",
-    "hero.tag": "Pre-order during the week • Weekend delivery • Min 1 kg • Delivery €2",
-    "cta.whatsapp": "Crea il tuo ordine",
-    "home.why.title": "Why choose us?",
-    "home.why.1": "Family Lebanese recipes",
-    "home.why.2": "Fresh & halal chicken",
-    "home.why.3": "Delivered in Torino every weekend",
-    "home.menu.title": "Our Bestsellers",
-    "menu.title": "Menu & Prices",
-    "menu.add": "Add to Order",
-    "order.grid.title": "Order",
-    "order.grid.desc": "Add items (kg) and submit. We’ll receive it in our system.",
-    "order.item": "Item",
-    "order.price": "Price €/kg",
-    "order.qty": "Qty (kg)",
-    "order.notes": "Notes",
-    "order.total": "Line total €",
-    "order.grand": "Grand Total €",
-    "order.add": "Add row",
-    "order.clear": "Clear",
-    "order.export": "Export CSV",
-    "order.sendwa": "Place Order",
-    "contact.title": "Contact & Orders",
-    "contact.tag": "Orders Mon–Fri, weekend delivery in Torino.",
-    "faq.title": "FAQ",
-    "about.title": "Our Story"
-  },
-  "it": {
-    "nav.home": "Home",
-    "nav.menu": "Menu",
-    "nav.order": "Ordina",
-    "nav.contact": "Contatti",
-    "nav.faq": "FAQ",
-    "nav.about": "Chi siamo",
-    "hero.kicker": "Fresh & Halal",
-    "hero.h1": "Marinature Libanesi di Pollo Fatte in Casa",
-    "hero.tag": "Ordina in settimana • Consegna nel weekend • Min 1 kg • Consegna €2",
-    "cta.whatsapp": "Ordina su WhatsApp",
-    "home.why.title": "Perché sceglierci?",
-    "home.why.1": "Ricette libanesi di famiglia",
-    "home.why.2": "Pollo fresco e halal",
-    "home.why.3": "Consegna a Torino ogni weekend",
-    "home.menu.title": "I più richiesti",
-    "menu.title": "Menu & Prezzi",
-    "menu.add": "Aggiungi all’ordine",
-    "order.grid.title": "Ordine",
-    "order.grid.desc": "Aggiungi prodotti (kg) e invia. Riceveremo l’ordine nel nostro sistema.",
-    "order.item": "Prodotto",
-    "order.price": "Prezzo €/kg",
-    "order.qty": "Q.tà (kg)",
-    "order.notes": "Note",
-    "order.total": "Totale riga €",
-    "order.grand": "Totale €",
-    "order.add": "Aggiungi riga",
-    "order.clear": "Pulisci",
-    "order.export": "Esporta CSV",
-    "order.sendwa": "Invia Ordine",
-    "contact.title": "Contatti & Ordini",
-    "contact.tag": "Ordini lun–ven, consegna nel weekend a Torino.",
-    "faq.title": "FAQ",
-    "about.title": "La nostra storia"
+(function () {
+  const STORE_KEY = 'wb_lang';
+
+  // Function to get the dictionary (translations)
+  function getDict() { 
+    return window.I18N_DICT || { en: {}, it: {} }; 
   }
-};
+
+  // Function to retrieve the translation for a given key and language
+  function t(lang, key) {
+    const dict = getDict();
+    return (dict[lang] && dict[lang][key]) || (dict.en && dict.en[key]) || '';
+  }
+
+  // Function to apply translations to the page
+  function apply(lang) {
+    // Apply translations to all elements with data-i18n
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      const val = t(lang, key);
+      if (val) el.textContent = val;
+    });
+
+    // Apply translations to all placeholders with data-i18n-ph
+    document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+      const key = el.getAttribute('data-i18n-ph');
+      const val = t(lang, key);
+      if (val) el.setAttribute('placeholder', val);
+    });
+
+    // Change language in HTML tag and toggle active states on language buttons
+    document.documentElement.lang = lang;
+    document.getElementById('btn-en')?.classList.toggle('active', lang === 'en');
+    document.getElementById('btn-it')?.classList.toggle('active', lang === 'it');
+
+    // Trigger event for other scripts to listen to (e.g., update item names in the grid)
+    window.dispatchEvent(new CustomEvent('wb:lang', { detail: { lang } }));
+  }
+
+  // Function to set the language (and save it in localStorage)
+  function setLang(lang) {
+    lang = (lang === 'it') ? 'it' : 'en';  // Default to 'en' if invalid
+    localStorage.setItem(STORE_KEY, lang);
+    window.__i18n = { lang, t: (key) => t(lang, key), set: setLang };
+    apply(lang);
+  }
+
+  // Get saved language from localStorage or use browser language (default to 'en')
+  const saved = localStorage.getItem(STORE_KEY);
+  const initial = saved || ((navigator.language || '').toLowerCase().startsWith('it') ? 'it' : 'en');
+  window.__i18n = { lang: initial, t: (key) => t(initial, key), set: setLang };
+
+  // Add event listeners to language buttons
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('btn-en')?.addEventListener('click', () => setLang('en'));
+    document.getElementById('btn-it')?.addEventListener('click', () => setLang('it'));
+    apply(initial);  // Apply the initial language when the page loads
+  });
+})();
