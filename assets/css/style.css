@@ -39,7 +39,7 @@ h1{font-size:clamp(32px,4.2vw,56px);line-height:1.05;margin:0 0 10px}
 .price{font-weight:900;color:var(--brand)}
 .muted{color:var(--muted)}
 
-.food-img{width:100%;aspect-ratio:16/9;height:auto;object-fit:cover;border-radius:12px;border:1px;margin-bottom:10px;}
+.food-img{width:100%;aspect-ratio:16/9;height:auto;object-fit:cover;border-radius:12px;border:1px solid #eee;margin-bottom:10px;}
 /* Only do fun hover on devices that actually hover */
 @media (hover:hover){
   .food-img:hover{object-fit:contain;transform:scale(1.4) rotate(90deg);}
@@ -106,8 +106,7 @@ table.table tfoot td{font-weight:900}
   .hero .panel h1{white-space:nowrap;overflow-wrap:normal}
 }
 
-/* ===== Mobile header: brand, then links, then EN/IT (left) ===== */
-/* --- Mobile header: brand, links, EN/IT (right) --- */
+/* ===== Mobile header: brand, links, EN/IT (right) ===== */
 @media (max-width: 640px){
   .nav{
     display:grid;
@@ -129,7 +128,7 @@ table.table tfoot td{font-weight:900}
     display:flex;
     flex-wrap:wrap;
     gap:6px;
-    justify-content:center;   /* links left; use center if you prefer */
+    justify-content:center;      /* or flex-start if you prefer left */
     overflow:visible;
     white-space:normal;
   }
@@ -143,12 +142,10 @@ table.table tfoot td{font-weight:900}
     grid-area:lang;
     display:flex;
     gap:8px;
-    justify-content:flex-end;     /* EN/IT on the right */
+    justify-content:flex-end;    /* EN/IT on the right under links */
   }
-}
 
-
-  /* Extra mobile polish */
+  /* Hero tighten on phones */
   .hero .panel{ padding:16px; }
   h1{ font-size:clamp(24px,7vw,34px); margin-bottom:8px; }
   .kicker{ font-size:.8rem; margin-bottom:6px; }
