@@ -130,7 +130,7 @@ table.table tfoot td{font-weight:900}
     display:flex;
     flex-wrap:wrap;
     gap:6px;
-    justify-content:flex-start;   /* links on the left */
+    justify-content:center;   /* links on the left */
     overflow:visible;
     white-space:normal;
   }
@@ -145,7 +145,7 @@ table.table tfoot td{font-weight:900}
     grid-area:lang;
     display:flex;
     gap:8px;
-    justify-content:flex-start;
+    justify-content:flex-end;
   }
 
   /* Extra mobile polish */
