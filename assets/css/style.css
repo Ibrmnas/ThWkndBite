@@ -73,42 +73,20 @@ table.table tfoot td{font-weight:900}
 
 /* ---------- RESPONSIVE TWEAKS ---------- */
 
-/* Nav: make links scrollable instead of wrapping */
-@media (max-width:520px){
-  .nav{gap:8px}
-  .navlinks{overflow-x:auto;white-space:nowrap;gap:4px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
-  .navlinks::-webkit-scrollbar{display:none}
-  .navlinks a{padding:6px 10px;font-size:14px}
-  .lang{flex-shrink:0}
-}
-
-/* Hero tighten on phones */
-@media (max-width:520px){
-  .hero .panel{padding:16px}
-  h1{font-size:clamp(24px,7vw,34px);margin-bottom:8px}
-  .kicker{font-size:.8rem;margin-bottom:6px}
-  .chips{gap:6px}
-  .chip{padding:6px 10px;font-size:.9rem}
-}
-
 /* Collapse card grids earlier (fix for .grid-2 too) */
-@media (max-width:900px){
-  .cards{grid-template-columns:1fr}
-}
+@media (max-width:900px){ .cards{grid-template-columns:1fr} }
 @media (max-width:640px){
   .grid-2{grid-template-columns:1fr}
   .grid-3{grid-template-columns:1fr}
 }
 
+/* Section padding lighter on phones */
+@media (max-width:520px){ .section{padding:20px 0} }
+
 /* Actions: full-width buttons on mobile */
 @media (max-width:520px){
   .actions{flex-direction:column}
   .actions .btn{width:100%;text-align:center}
-}
-
-/* Section padding lighter on phones */
-@media (max-width:520px){
-  .section{padding:20px 0}
 }
 
 /* Table compact on narrow */
@@ -126,4 +104,47 @@ table.table tfoot td{font-weight:900}
 /* Keep hero title on one line on desktop */
 @media (min-width:1000px){
   .hero .panel h1{white-space:nowrap;overflow-wrap:normal}
+}
+
+/* ===== Mobile header reflow (no hamburger) — overrides previous small-nav rules ===== */
+@media (max-width:640px){
+  /* Header becomes two rows */
+  .nav{ flex-direction:column; align-items:stretch; padding:8px 0; gap:6px; }
+
+  .brand{ justify-content:flex-start; gap:8px; }
+  .brand .logo{ width:34px; height:34px; }
+  .brand > div{ font-weight:800; font-size:18px; line-height:1.1; }
+
+  /* Links wrap nicely; EN/IT sits at the end of row 1 */
+  .navlinks{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:6px;
+    overflow:visible;          /* override any previous horizontal scrolling */
+    white-space:normal;
+  }
+  .navlinks .lang{ order:0; margin-left:auto; gap:6px; }
+
+  /* Force a break so links start on their own row */
+  .navlinks::before{ content:""; order:1; flex-basis:100%; }
+
+  /* Chip-like links on row 2 */
+  .navlinks a{
+    order:2;
+    flex:0 0 auto;
+    padding:6px 10px;
+    font-size:14px;
+    border-radius:999px;
+  }
+
+  /* Tighten hero/chips a bit more */
+  .hero .panel{ padding:16px; }
+  h1{ font-size:clamp(24px,7vw,34px); margin-bottom:8px; }
+  .kicker{ font-size:.8rem; margin-bottom:6px; }
+  .chips{ gap:6px; }
+  .chip{ padding:6px 10px; font-size:.92rem; }
+
+  /* Disable image hover tricks on touch */
+  .food-img:hover{ transform:none !important; object-fit:cover !important; }
 }
