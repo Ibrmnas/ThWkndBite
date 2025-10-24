@@ -107,8 +107,8 @@ table.table tfoot td{font-weight:900}
 }
 
 /* ===== Mobile header: brand, then links, then EN/IT (left) ===== */
-@media (max-width:640px){
-  /* Header stacks into 3 rows */
+/* --- Mobile header: brand, links, EN/IT (right) --- */
+@media (max-width: 640px){
   .nav{
     display:grid;
     grid-template-columns:1fr;
@@ -124,13 +124,12 @@ table.table tfoot td{font-weight:900}
   .brand .logo{ width:34px; height:34px; }
   .brand > div{ font-weight:800; font-size:18px; line-height:1.1; }
 
-  /* Links row */
   .navlinks{
     grid-area:links;
     display:flex;
     flex-wrap:wrap;
     gap:6px;
-    justify-content:center;   /* links on the left */
+    justify-content:center;   /* links left; use center if you prefer */
     overflow:visible;
     white-space:normal;
   }
@@ -140,13 +139,14 @@ table.table tfoot td{font-weight:900}
     border-radius:999px;
   }
 
-  /* EN/IT under links, left-aligned */
   .lang{
     grid-area:lang;
     display:flex;
     gap:8px;
-    justify-content:flex-end;
+    justify-content:flex-end;     /* EN/IT on the right */
   }
+}
+
 
   /* Extra mobile polish */
   .hero .panel{ padding:16px; }
