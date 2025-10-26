@@ -182,3 +182,67 @@ table.table tfoot td{font-weight:900}
 
   table.table tfoot td{ padding:10px 0; }
 }
+
+
+
+
+
+/* ===== Order row alignment on phones (stacked-card view) ===== */
+@media (max-width: 640px){
+  /* card grid: 2 equal columns */
+  table.table tbody tr{
+    grid-template-columns: 1fr 1fr;
+  }
+
+  /* place each cell explicitly to keep a clean matrix */
+  table.table tbody td:nth-child(1){ grid-column: 1; } /* Item */
+  table.table tbody td:nth-child(2){ grid-column: 2; } /* Price €/kg */
+  table.table tbody td:nth-child(3){ grid-column: 1; } /* Qty (kg) */
+  table.table tbody td:nth-child(4){ grid-column: 2; } /* Notes */
+  table.table tbody td:nth-child(5){ grid-column: 1; } /* Price € */
+  table.table tbody td:nth-child(6){ /* delete */
+    grid-column: 2;
+    align-self: center;           /* vertical alignment */
+    justify-self: end;            /* push to the right */
+  }
+
+  /* label spacing above controls */
+  table.table tbody td::before{
+    margin-bottom: 6px;
+    line-height: 1.2;
+  }
+
+  /* Qty stepper: keep minus, input, plus on one line */
+  .qty-wrap{
+    display: grid;                /* override flex */
+    grid-template-columns: 40px 1fr 40px;
+    gap: 8px;
+  }
+  .qty-btn{
+    width: 40px; height: 40px;
+    border-radius: 10px;
+  }
+  .qty-wrap input{
+    height: 40px;
+    text-align: center;
+  }
+
+  /* make other inputs visually consistent */
+  table.table select,
+  table.table input{
+    height: 40px;
+    border-radius: 10px;
+  }
+
+  /* compact totals row padding */
+  table.table tfoot td{ padding: 10px 0; }
+}
+
+/* super-small screens: fall back to single column for readability */
+@media (max-width: 360px){
+  table.table tbody tr{ grid-template-columns: 1fr; }
+  table.table tbody td:nth-child(2),
+  table.table tbody td:nth-child(4),
+  table.table tbody td:nth-child(6){ grid-column: 1; justify-self: end; }
+}
+
