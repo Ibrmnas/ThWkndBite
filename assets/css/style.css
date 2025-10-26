@@ -246,4 +246,3 @@ table.table tfoot td { font-weight:900 }
   .customer-grid .card:nth-child(4){ grid-column:1; } /* Email  */
   .customer-grid .card:nth-child(3){ grid-column:2; } /* Address*/
 }
-
