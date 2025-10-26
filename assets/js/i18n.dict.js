@@ -40,6 +40,8 @@ window.I18N_DICT = {
     "form.address": "Delivery address (Torino)",
     "form.order": "Your order (e.g., Tawook 1 kg, Shawarma 1 kg)",
     "form.submit": "Send"
+    "pay.revolut": "Pay with Revolut",
+    "pay.satispay": "Pay with Satispay",
   },
   "it": {
     "nav.home": "Home",
@@ -82,5 +84,7 @@ window.I18N_DICT = {
     "form.address": "Indirizzo di consegna (Torino)",
     "form.order": "Il tuo ordine (ad esempio, Tawook 1 kg, Shawarma 1 kg)",
     "form.submit": "Invia"
+    "pay.revolut": "Paga con Revolut",
+    "pay.satispay": "Paga con Satispay",
   }
 };
