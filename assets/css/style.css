@@ -62,8 +62,7 @@ h1 { font-size:clamp(32px,4.2vw,56px); line-height:1.05; margin:0 0 10px }
 .muted { color:var(--muted) }
 
 /* Food images (fixed border) */
-.food-img { width:100%; aspect-ratio:16/9; height:auto; object-fit:cover; border-radius:12px; border:1px solid #eee; margin-bottom:10px }
-@media (hover:hover){ .food-img:hover{ object-fit:contain; transform:scale(1.4) rotate(90deg) } }
+.food-img { width:100%; aspect-ratio:16/9; height:auto; object-fit:cover; border-radius:12px; border:1px; margin-bottom:10px }
 
 .notice { background:#fff; border:1px solid var(--border); border-radius:12px; padding:12px 14px; margin-top:10px }
 .grid-3 { display:grid; grid-template-columns:repeat(3,1fr); gap:16px }
