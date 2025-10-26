@@ -261,3 +261,27 @@ table.table tfoot td { font-weight:900 }
   }
 }
 
+/* ===========================
+   Customer Details / About Section (Mobile Grid)
+=========================== */
+
+/* Default for Desktop/Tablets (Two columns) */
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 640px) {
+  /* On small screens, make the layout stack vertically (one column) */
+  .grid-2 {
+    display: flex;
+    flex-direction: column;  /* Stack the elements vertically */
+    gap: 16px;  /* Add some space between the elements */
+  }
+
+  .grid-2 .card {
+    width: 100%;  /* Ensure the cards take full width on mobile */
+  }
+}
+
