@@ -1,6 +1,7 @@
 (function () {
   const REQUEST_TIMEOUT_MS = 15000;
 
+  /* ---------- helpers ---------- */
   function money(n) {
     return (Math.round((Number(n) + Number.EPSILON) * 100) / 100).toFixed(2);
   }
@@ -9,7 +10,21 @@
     (window.SITE_CONFIG.items || []).forEach(i => (m[i.key] = i));
     return m;
   }
+  function snapToHalf(n) {
+    const v = Number(n);
+    if (!isFinite(v)) return 0.5;
+    return Math.max(0.5, Math.round(v * 2) / 2);
+  }
+  function getTableHeaders() {
+    const ths = document.querySelectorAll('table.table thead th');
+    return Array.from(ths).map(th => th.textContent.trim());
+  }
+  function addLabelsToRow(tr, heads) {
+    const tds = tr.querySelectorAll('td');
+    tds.forEach((td, i) => td.setAttribute('data-label', heads[i] || ''));
+  }
 
+  /* ---------- row builder ---------- */
   function addRow(tbody, row) {
     const map = itemsMap();
     const tr = document.createElement('tr');
@@ -34,31 +49,30 @@
     price.readOnly = true;
     tdPrice.appendChild(price);
 
-// Qty with ± stepper (0.5 kg)
-const tdQty = td();
-const qtyWrap = document.createElement('div');
-qtyWrap.className = 'qty-wrap';
+    // Qty with ± stepper (0.5 kg)
+    const tdQty = td();
+    const qtyWrap = document.createElement('div');
+    qtyWrap.className = 'qty-wrap';
 
-const minus = document.createElement('button');
-minus.type = 'button';
-minus.className = 'qty-btn';
-minus.textContent = '–';
+    const minus = document.createElement('button');
+    minus.type = 'button';
+    minus.className = 'qty-btn';
+    minus.textContent = '–';
 
-const qty = document.createElement('input');
-qty.type = 'number';
-qty.step = '0.5';
-qty.min  = '0.5';
-qty.inputMode = 'decimal';   // better mobile keyboard
-qty.placeholder = '0.5';
+    const qty = document.createElement('input');
+    qty.type = 'number';
+    qty.step = '0.5';
+    qty.min  = '0.5';
+    qty.inputMode = 'decimal';
+    qty.placeholder = '0.5';
 
-const plus = document.createElement('button');
-plus.type = 'button';
-plus.className = 'qty-btn';
-plus.textContent = '+';
+    const plus = document.createElement('button');
+    plus.type = 'button';
+    plus.className = 'qty-btn';
+    plus.textContent = '+';
 
-qtyWrap.append(minus, qty, plus);
-tdQty.appendChild(qtyWrap);
-
+    qtyWrap.append(minus, qty, plus);
+    tdQty.appendChild(qtyWrap);
 
     // Notes
     const tdNotes = td();
@@ -88,7 +102,10 @@ tdQty.appendChild(qtyWrap);
     [tdItem, tdPrice, tdQty, tdNotes, tdTot, tdAct].forEach(x => tr.appendChild(x));
     tbody.appendChild(tr);
 
+    // label the cells for the stacked mobile layout
+    addLabelsToRow(tr, getTableHeaders());
 
+    // sync calculation
     function sync() {
       const it = map[sel.value];
       const p = it ? it.price : 0;
@@ -97,48 +114,41 @@ tdQty.appendChild(qtyWrap);
       tot.value = money(p * q);
       recalc();
     }
+
+    // stepper handlers (scoped to this row)
+    minus.addEventListener('click', () => {
+      const current = Number(qty.value) || 0;
+      const next = Math.max(0.5, current - 0.5);
+      qty.value = next.toFixed(1);
+      sync();
+    });
+    plus.addEventListener('click', () => {
+      const current = Number(qty.value) || 0;
+      const next = current + 0.5;
+      qty.value = next.toFixed(1);
+      sync();
+    });
+    qty.addEventListener('blur', () => {
+      qty.value = snapToHalf(qty.value).toFixed(1);
+      sync();
+    });
+
     sel.addEventListener('change', sync);
     qty.addEventListener('input', sync);
 
+    // defaults
+    const firstKey = Object.keys(map)[0] || '';
     if (row) {
-      sel.value = row.key;
-      qty.value = row.qty;
+      sel.value = map[row.key] ? row.key : firstKey;
+      qty.value = snapToHalf(row.qty ?? 0.5).toFixed(1);
     } else {
-      const firstKey = Object.keys(map)[0];
-      if (firstKey) sel.value = firstKey;
-      qty.value = 1;
+      sel.value = firstKey;
+      qty.value = '0.5';
     }
     sync();
   }
 
-
-function snapToHalf(n){
-  n = Number(n) || 0;
-  return Math.max(0.5, Math.round(n * 2) / 2);
-}
-
-minus.addEventListener('click', () => {
-  const current = Number(qty.value) || 0;
-  const next = Math.max(0.5, current - 0.5);
-  qty.value = next.toFixed(1);
-  sync();
-});
-
-plus.addEventListener('click', () => {
-  const current = Number(qty.value) || 0;
-  const next = current + 0.5;
-  qty.value = next.toFixed(1);
-  sync();
-});
-
-// Snap any typed value to nearest 0.5 on blur
-qty.addEventListener('blur', () => {
-  const snapped = snapToHalf(qty.value);
-  qty.value = snapped.toFixed(1);
-  sync();
-});
-
-  
+  /* ---------- totals ---------- */
   function recalc() {
     let sum = 0;
     document.querySelectorAll('tbody tr').forEach(tr => {
@@ -147,6 +157,7 @@ qty.addEventListener('blur', () => {
     document.getElementById('grand').textContent = money(sum);
   }
 
+  /* ---------- submit ---------- */
   async function sendToSheet() {
     const endpoint = window.WB_ENDPOINT || '';
     if (!endpoint) {
@@ -184,13 +195,13 @@ qty.addEventListener('blur', () => {
       }
     }
 
-      const emailEl = document.getElementById('c-email');
-      if (!emailEl || !emailEl.value.trim() || !emailEl.checkValidity()) {
-        emailEl?.reportValidity();  // shows the built-in browser message
-        emailEl?.focus();
+    const emailEl = document.getElementById('c-email');
+    if (!emailEl || !emailEl.value.trim() || !emailEl.checkValidity()) {
+      emailEl?.reportValidity();
+      emailEl?.focus();
       return;
     }
-    
+
     const allergies = (document.getElementById('c-allergies')?.value || '').trim();
 
     const payload = {
@@ -199,11 +210,11 @@ qty.addEventListener('blur', () => {
       address: document.getElementById('c-addr').value.trim(),
       email: (document.getElementById('c-email')?.value || '').trim(),
       notes: (document.getElementById('c-notes').value || '').trim(),
-      allergies, // <-- send as its own field (matches backend)
+      allergies,
       items,
       lang: document.documentElement.lang || 'en',
       ua: navigator.userAgent,
-      hp: document.getElementById('hp-field')?.value || '' // honeypot
+      hp: document.getElementById('hp-field')?.value || ''
     };
 
     if (!payload.name || !payload.phone || !payload.address || items.length === 0) {
@@ -216,14 +227,13 @@ qty.addEventListener('blur', () => {
     btn.textContent = 'Sending...';
     btn.disabled = true;
 
-    // timeout support
     const controller = new AbortController();
     const t = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
     try {
       const res = await fetch(endpoint, {
         method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, // avoid CORS preflight
+        headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
         body: JSON.stringify(payload),
         signal: controller.signal
       });
@@ -258,6 +268,7 @@ qty.addEventListener('blur', () => {
     }
   }
 
+  /* ---------- boot ---------- */
   document.addEventListener('DOMContentLoaded', function () {
     const tbody = document.getElementById('rows');
     addRow(tbody);
@@ -294,6 +305,14 @@ qty.addEventListener('blur', () => {
         URL.revokeObjectURL(url);
       });
     }
+
+    // refresh labels on first load and whenever language changes
+    let HEADS = getTableHeaders();
+    document.querySelectorAll('table.table tbody tr').forEach(tr => addLabelsToRow(tr, HEADS));
+    window.addEventListener('wb:lang', () => {
+      HEADS = getTableHeaders();
+      document.querySelectorAll('table.table tbody tr').forEach(tr => addLabelsToRow(tr, HEADS));
+    });
 
     document.getElementById('place-order').addEventListener('click', sendToSheet);
   });
