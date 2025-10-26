@@ -23,6 +23,43 @@
     const tds = tr.querySelectorAll('td');
     tds.forEach((td, i) => td.setAttribute('data-label', heads[i] || ''));
   }
+  function getOrderTotal() {
+    const el = document.getElementById('grand');
+    const n = el ? parseFloat(String(el.textContent).replace(/[^\d.,]/g, '').replace(',', '.')) : 0;
+    return isNaN(n) ? 0 : n;
+  }
+  function togglePayButtons() {
+    const disabled = getOrderTotal() <= 0;
+    ['pay-revolut', 'pay-satispay'].forEach(id => {
+      const b = document.getElementById(id);
+      if (b) b.disabled = disabled;
+    });
+  }
+  function openRevolut() {
+    const amt = getOrderTotal();
+    if (amt <= 0) return alert('Please add items to your order first.');
+    if (!window.PAY || !window.PAY.revolutUser) {
+      return alert('Revolut handle is not configured.');
+    }
+    const t = window.PAY.templates?.revolut || 'https://revolut.me/{user}/{amount}?currency={cur}';
+    const url = t
+      .replace('{user}', window.PAY.revolutUser)
+      .replace('{amount}', amt.toFixed(2))
+      .replace('{cur}', window.PAY.currency || 'EUR');
+    window.open(url, '_blank');
+  }
+  function openSatispay() {
+    const amt = getOrderTotal();
+    if (amt <= 0) return alert('Please add items to your order first.');
+    if (!window.PAY || !window.PAY.satispayTag) {
+      return alert('Satispay tag is not configured.');
+    }
+    const t = window.PAY.templates?.satispay || 'https://tag.satispay.com/{tag}?amount={amount}';
+    const url = t
+      .replace('{tag}', window.PAY.satispayTag)
+      .replace('{amount}', amt.toFixed(2));
+    window.open(url, '_blank');
+  }
 
   /* ---------- row builder ---------- */
   function addRow(tbody, row) {
@@ -102,10 +139,10 @@
     [tdItem, tdPrice, tdQty, tdNotes, tdTot, tdAct].forEach(x => tr.appendChild(x));
     tbody.appendChild(tr);
 
-    // label the cells for the stacked mobile layout
+    // labels for stacked mobile layout
     addLabelsToRow(tr, getTableHeaders());
 
-    // sync calculation
+    // sync calc
     function sync() {
       const it = map[sel.value];
       const p = it ? it.price : 0;
@@ -115,7 +152,7 @@
       recalc();
     }
 
-    // stepper handlers (scoped to this row)
+    // stepper handlers (scoped)
     minus.addEventListener('click', () => {
       const current = Number(qty.value) || 0;
       const next = Math.max(0.5, current - 0.5);
@@ -132,6 +169,8 @@
       qty.value = snapToHalf(qty.value).toFixed(1);
       sync();
     });
+    // prevent wheel changing qty while scrolling
+    qty.addEventListener('wheel', e => e.preventDefault(), { passive:false });
 
     sel.addEventListener('change', sync);
     qty.addEventListener('input', sync);
@@ -155,6 +194,9 @@
       sum += parseFloat(tr.querySelector('td:nth-child(5) input').value || 0);
     });
     document.getElementById('grand').textContent = money(sum);
+
+    // Enable/disable pay buttons based on total
+    togglePayButtons();
   }
 
   /* ---------- submit ---------- */
@@ -177,22 +219,13 @@
       if (qty > 0) items.push({ key, name, price, qty, notes });
     });
 
-    // Validate minimums: total >= 1kg; per line >= 0.5 in 0.5 steps
+    // Validate minimums
     const totalQty = items.reduce((s, it) => s + (parseFloat(it.qty) || 0), 0);
-    if (totalQty < 1) {
-      alert('Minimum order is 1 kg (you can mix items, e.g., 0.5 + 0.5).');
-      return;
-    }
+    if (totalQty < 1) { alert('Minimum order is 1 kg (you can mix items, e.g., 0.5 + 0.5).'); return; }
     for (const it of items) {
-      if (it.qty > 0 && it.qty < 0.5) {
-        alert('Minimum per item is 0.5 kg.');
-        return;
-      }
+      if (it.qty > 0 && it.qty < 0.5) { alert('Minimum per item is 0.5 kg.'); return; }
       const multiple = Math.round(it.qty * 2) / 2;
-      if (Math.abs(it.qty - multiple) > 1e-6) {
-        alert('Quantities must be in 0.5 kg steps (e.g., 0.5, 1, 1.5).');
-        return;
-      }
+      if (Math.abs(it.qty - multiple) > 1e-6) { alert('Quantities must be in 0.5 kg steps (e.g., 0.5, 1, 1.5).'); return; }
     }
 
     const emailEl = document.getElementById('c-email');
@@ -244,12 +277,8 @@
       }
 
       let j;
-      try {
-        j = await res.json();
-      } catch {
-        const txt = await res.text();
-        throw new Error('Invalid JSON: ' + txt.slice(0, 200));
-      }
+      try { j = await res.json(); }
+      catch { const txt = await res.text(); throw new Error('Invalid JSON: ' + txt.slice(0, 200)); }
 
       if (j && j.ok) {
         alert('Order received! Your ID: ' + j.id);
@@ -314,6 +343,16 @@
       document.querySelectorAll('table.table tbody tr').forEach(tr => addLabelsToRow(tr, HEADS));
     });
 
+    // submit
     document.getElementById('place-order').addEventListener('click', sendToSheet);
+
+    // payment buttons
+    const payRev = document.getElementById('pay-revolut');
+    if (payRev) payRev.addEventListener('click', openRevolut);
+    const paySat = document.getElementById('pay-satispay');
+    if (paySat) paySat.addEventListener('click', openSatispay);
+
+    // reflect initial disabled state (0.00 total)
+    togglePayButtons();
   });
 })();
