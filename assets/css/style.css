@@ -248,7 +248,6 @@ table.table tfoot td { font-weight:900 }
   .customer-grid .card:nth-child(3){ grid-column:2; } /* Address*/
 }
 
-
 /* ===========================
    Customer Details / About Section (Mobile Grid)
 =========================== */
@@ -272,4 +271,3 @@ table.table tfoot td { font-weight:900 }
     width: 100%;  /* Ensure the cards take full width on mobile */
   }
 }
-
