@@ -23,24 +23,40 @@
     const tds = tr.querySelectorAll('td');
     tds.forEach((td, i) => td.setAttribute('data-label', heads[i] || ''));
   }
-  function getOrderTotal() {
+
+  // --- totals (NEW: base vs payable) ---
+  function getBaseTotal() {
     const el = document.getElementById('grand');
     const n = el ? parseFloat(String(el.textContent).replace(/[^\d.,]/g, '').replace(',', '.')) : 0;
     return isNaN(n) ? 0 : n;
   }
+  function getPayableTotal() {
+    let total = getBaseTotal();
+    const fee = Number(window.SITE_CONFIG?.delivery?.fee || 0);
+    const cb = document.getElementById('include-delivery'); // optional checkbox
+    if (cb && cb.checked) total += fee;
+    return total;
+  }
+
+  // --- payments (UPDATED to use payable total) ---
   function togglePayButtons() {
-    const disabled = getOrderTotal() <= 0;
+    const disabled = getPayableTotal() <= 0;
     ['pay-revolut', 'pay-satispay'].forEach(id => {
       const b = document.getElementById(id);
       if (b) b.disabled = disabled;
     });
+    // optional "to pay" line if you added <span id="to-pay">
+    const toPay = document.getElementById('to-pay');
+    if (toPay) toPay.textContent = getPayableTotal().toFixed(2);
   }
+
   function openRevolut() {
-    const amt = getOrderTotal();
+    const amt = getPayableTotal();
     if (amt <= 0) return alert('Please add items to your order first.');
     if (!window.PAY || !window.PAY.revolutUser) {
       return alert('Revolut handle is not configured.');
     }
+    // Use your configured template; defaults to path style if not set
     const t = window.PAY.templates?.revolut || 'https://revolut.me/{user}/{amount}?currency={cur}';
     const url = t
       .replace('{user}', window.PAY.revolutUser)
@@ -48,8 +64,9 @@
       .replace('{cur}', window.PAY.currency || 'EUR');
     window.open(url, '_blank');
   }
+
   function openSatispay() {
-    const amt = getOrderTotal();
+    const amt = getPayableTotal();
     if (amt <= 0) return alert('Please add items to your order first.');
     if (!window.PAY || !window.PAY.satispayTag) {
       return alert('Satispay tag is not configured.');
@@ -195,7 +212,7 @@
     });
     document.getElementById('grand').textContent = money(sum);
 
-    // Enable/disable pay buttons based on total
+    // Enable/disable pay buttons based on PAYABLE total (items + optional delivery)
     togglePayButtons();
   }
 
@@ -351,6 +368,10 @@
     if (payRev) payRev.addEventListener('click', openRevolut);
     const paySat = document.getElementById('pay-satispay');
     if (paySat) paySat.addEventListener('click', openSatispay);
+
+    // delivery toggle re-compute (if present)
+    const cb = document.getElementById('include-delivery');
+    if (cb) cb.addEventListener('change', togglePayButtons);
 
     // reflect initial disabled state (0.00 total)
     togglePayButtons();
