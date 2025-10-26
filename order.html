@@ -91,6 +91,21 @@
         <button id="clear" class="btn" data-i18n="order.clear">Clear</button>
       </div>
 
+      <!-- Delivery toggle -->
+<div class="actions" style="margin:10px 0;">
+  <label class="muted" style="display:flex;align-items:center;gap:8px;">
+    <input id="include-delivery" type="checkbox" checked>
+    <span data-i18n="order.includeDelivery">Include delivery (€2)</span>
+  </label>
+</div>
+
+<!-- Optional: a visible 'To pay' summary -->
+<div class="notice">
+  <strong data-i18n="order.toPay">To pay</strong>:
+  €<span id="to-pay">0.00</span>
+</div>
+
+
       <h2 style="margin-top:24px">Customer details</h2>
       <div class="grid-3 customer-grid">
         <div class="card"><label>Name <input id="c-name" required placeholder="Full name"></label></div>
