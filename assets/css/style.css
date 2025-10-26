@@ -165,12 +165,8 @@ table.table tfoot td { font-weight:900 }
     width:100%; padding:10px 12px; font-size:.95rem; line-height:1.2;
     text-align:center; white-space:normal; word-break:break-word; border-radius:999px;
   }
-  /* default: no special centering for the last chip */
   .chips > .chip:last-child{ grid-column:auto; width:100% }
-  /* when odd count, center the last chip on its own row */
-  .chips > .chip:last-child:nth-child(odd){
-    grid-column:1 / -1; justify-self:center; width:78%;
-  }
+  .chips > .chip:last-child:nth-child(odd){ grid-column:1 / -1; justify-self:center; width:78% }
 
   /* Order table → stacked card layout */
   .table-wrap{ overflow:visible !important; box-shadow:none }
@@ -185,7 +181,6 @@ table.table tfoot td { font-weight:900 }
   table.table tbody td::before{
     content:attr(data-label); font-weight:700; font-size:.9rem; color:var(--ink); opacity:.85; margin-bottom:6px; line-height:1.2;
   }
-  /* explicit grid placement for tidy matrix */
   table.table tbody td:nth-child(1){ grid-column:1 } /* Item */
   table.table tbody td:nth-child(2){ grid-column:2 } /* Price €/kg */
   table.table tbody td:nth-child(3){ grid-column:1 } /* Qty */
@@ -193,7 +188,6 @@ table.table tfoot td { font-weight:900 }
   table.table tbody td:nth-child(5){ grid-column:1 } /* Line Price */
   table.table tbody td:nth-child(6){ grid-column:2; align-self:center; justify-self:end } /* delete */
 
-  /* Controls look consistent */
   table.table select, table.table input{ width:100%; min-width:0; height:40px; border-radius:10px }
   .qty-wrap{ display:grid; grid-template-columns:40px 1fr 40px; gap:8px }
   .qty-btn{ width:40px; height:40px; border-radius:10px }
@@ -221,14 +215,36 @@ table.table tfoot td { font-weight:900 }
 /* ===========================
    Customer details grid (Address next to Email)
 =========================== */
-/* Works automatically when the grid has 4 cards (Name, Phone, Address, Email).
-   Fallback .customer-grid class is provided for older browsers. */
+/* Desktop/tablet auto 2-col if 4 cards present */
 @supports (selector(.grid-3:has(> .card))) {
-  @media (min-width: 768px) {
-    .grid-3:has(> .card:nth-child(4)) { grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (min-width:768px){
+    .grid-3:has(> .card:nth-child(4)){ grid-template-columns:1fr 1fr; gap:16px; }
   }
 }
-/* Optional fallback: add class="grid-3 customer-grid" in HTML if needed */
-@media (min-width: 768px){
-  .customer-grid { grid-template-columns: 1fr 1fr; gap: 16px; }
+/* Fallback class */
+@media (min-width:768px){
+  .customer-grid{ grid-template-columns:1fr 1fr; gap:16px; }
+}
+
+/* Phone: force two columns and explicit order -> Name | Phone / Email | Address */
+@supports (selector(.grid-3:has(> .card))) {
+  @media (max-width:640px){
+    .grid-3:has(> .card:nth-child(4)){
+      display:grid; grid-template-columns:1fr 1fr; gap:16px;
+    }
+    .grid-3:has(> .card:nth-child(4)) > .card:nth-child(1){ grid-column:1; } /* Name   */
+    .grid-3:has(> .card:nth-child(4)) > .card:nth-child(2){ grid-column:2; } /* Phone  */
+    .grid-3:has(> .card:nth-child(4)) > .card:nth-child(4){ grid-column:1; } /* Email  */
+    .grid-3:has(> .card:nth-child(4)) > .card:nth-child(3){ grid-column:2; } /* Address*/
+  }
+}
+/* Phone fallback (use class="grid-3 customer-grid" on the wrapper) */
+@media (max-width:640px){
+  .customer-grid{
+    display:grid; grid-template-columns:1fr 1fr; gap:16px;
+  }
+  .customer-grid .card:nth-child(1){ grid-column:1; }
+  .customer-grid .card:nth-child(2){ grid-column:2; }
+  .customer-grid .card:nth-child(4){ grid-column:1; }
+  .customer-grid .card:nth-child(3){ grid-column:2; }
 }
