@@ -1,6 +1,10 @@
 (function () {
   const REQUEST_TIMEOUT_MS = 15000;
 
+  // Track whether user wants to pay after placing the order
+  // values: null | 'revolut' | 'satispay'
+  let pendingPay = null;
+
   /* ---------- helpers ---------- */
   function money(n) {
     return (Math.round((Number(n) + Number.EPSILON) * 100) / 100).toFixed(2);
@@ -48,38 +52,35 @@
     const toPay = document.getElementById('to-pay'); // optional
     if (toPay) toPay.textContent = getPayableTotal().toFixed(2);
   }
-function openRevolut() {
-  const amt = getPayableTotal();
-  if (amt <= 0) return alert('Please add items to your order first.');
-  const user = window.PAY?.revolutUser;
-  if (!user) return alert('Revolut handle is not configured.');
+  function openRevolut() {
+    const amt = getPayableTotal();
+    if (amt <= 0) return alert('Please add items to your order first.');
+    if (!window.PAY || !window.PAY.revolutUser) return alert('Revolut handle is not configured.');
 
-  const tpl = window.PAY?.templates?.revolut
-            || 'https://revolut.me/{user}?amount={amount}&currency={cur}';
-  const url = tpl
-    .replace('{user}', encodeURIComponent(user))
-    .replace('{amount}', amt.toFixed(2))
-    .replace('{cur}', window.PAY?.currency || 'EUR');
-  
-  try {
-    const toPay = amt.toFixed(2);
-    console.log(`Opening Revolut for €${toPay}…`);
-  } catch {}
+    const tpl = window.PAY.templates?.revolut
+      || 'https://revolut.me/{user}?amount={amount}&currency={cur}'; // query style = most reliable
 
-  // redirect immediately
-  window.location.href = url;
-}
+    const url = tpl
+      .replace('{user}', encodeURIComponent(window.PAY.revolutUser))
+      .replace('{amount}', amt.toFixed(2))
+      .replace('{cur}', window.PAY.currency || 'EUR');
 
-
+    // navigate in same tab → universal link opens app if installed
+    window.location.href = url;
+  }
   function openSatispay() {
     const amt = getPayableTotal();
     if (amt <= 0) return alert('Please add items to your order first.');
     if (!window.PAY || !window.PAY.satispayTag) return alert('Satispay tag is not configured.');
-    const t = window.PAY.templates?.satispay || 'https://tag.satispay.com/{tag}?amount={amount}';
-    const url = t
-      .replace('{tag}', window.PAY.satispayTag)
+
+    const tpl = window.PAY.templates?.satispay
+      || 'https://tag.satispay.com/{tag}?amount={amount}';
+
+    const url = tpl
+      .replace('{tag}', encodeURIComponent(window.PAY.satispayTag))
       .replace('{amount}', amt.toFixed(2));
-    window.open(url, '_blank', 'noopener');
+
+    window.location.href = url;
   }
 
   /* ---------- row builder ---------- */
@@ -184,7 +185,7 @@ function openRevolut() {
       sync();
     });
     qty.addEventListener('blur', () => { qty.value = snapToHalf(qty.value).toFixed(1); sync(); });
-    qty.addEventListener('wheel', e => e.preventDefault(), { passive:false }); // prevent scroll change
+    qty.addEventListener('wheel', e => e.preventDefault(), { passive:false });
 
     sel.addEventListener('change', sync);
     qty.addEventListener('input', sync);
@@ -209,7 +210,7 @@ function openRevolut() {
     });
     document.getElementById('grand').textContent = money(sum);
 
-    // Enable/disable pay buttons based on PAYABLE total (items + optional delivery)
+    // reflect PAYABLE total (items + optional delivery)
     togglePayButtons();
   }
 
@@ -288,8 +289,18 @@ function openRevolut() {
       catch { const txt = await res.text(); throw new Error('Invalid JSON: ' + txt.slice(0, 200)); }
 
       if (j && j.ok) {
-        alert('Order received! Your ID: ' + j.id);
+        // Order saved OK → go to selected payment if requested
+        const payNow = pendingPay; // snapshot before clearing
+        pendingPay = null;
+
+        // clear cart before redirecting out
         localStorage.removeItem('cart');
+
+        if (payNow === 'revolut') { openRevolut(); return; }
+        if (payNow === 'satispay') { openSatispay(); return; }
+
+        // No payment requested → show confirmation and/or redirect
+        alert('Order received! Your ID: ' + j.id);
         location.href = 'index.html';
       } else {
         throw new Error(j && j.error ? String(j.error) : 'Unknown error');
@@ -341,14 +352,23 @@ function openRevolut() {
       document.querySelectorAll('table.table tbody tr').forEach(tr => addLabelsToRow(tr, HEADS));
     });
 
-    // submit
-    document.getElementById('place-order').addEventListener('click', sendToSheet);
+    // submit (place only)
+    document.getElementById('place-order').addEventListener('click', () => {
+      pendingPay = null; // place only
+      sendToSheet();
+    });
 
-    // payment buttons
+    // payment buttons → place then pay
     const payRev = document.getElementById('pay-revolut');
-    if (payRev) payRev.addEventListener('click', openRevolut);
+    if (payRev) payRev.addEventListener('click', () => {
+      pendingPay = 'revolut';
+      sendToSheet();
+    });
     const paySat = document.getElementById('pay-satispay');
-    if (paySat) paySat.addEventListener('click', openSatispay);
+    if (paySat) paySat.addEventListener('click', () => {
+      pendingPay = 'satispay';
+      sendToSheet();
+    });
 
     // delivery toggle re-compute (if present)
     const cb = document.getElementById('include-delivery');
