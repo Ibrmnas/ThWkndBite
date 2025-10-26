@@ -246,3 +246,10 @@ table.table tfoot td { font-weight:900 }
   .grid-2{ display:flex; flex-direction:column; gap:16px }
   .grid-2 .card{ width:100% }
 }
+
+@media (max-width:640px){
+  .actions #pay-revolut,
+  .actions #pay-satispay{
+    width:100%;
+  }
+}
