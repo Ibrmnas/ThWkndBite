@@ -42,6 +42,8 @@ window.I18N_DICT = {
     "form.submit": "Send"
     "pay.revolut": "Pay with Revolut",
     "pay.satispay": "Pay with Satispay",
+    "order.includeDelivery":"Include delivery (€2)",
+    "order.toPay":"To pay",
   },
   "it": {
     "nav.home": "Home",
@@ -86,5 +88,7 @@ window.I18N_DICT = {
     "form.submit": "Invia"
     "pay.revolut": "Paga con Revolut",
     "pay.satispay": "Paga con Satispay",
+    "order.includeDelivery":"Includi consegna (€2)",
+    "order.toPay":"Da pagare",
   }
 };
