@@ -49,23 +49,27 @@
     if (toPay) toPay.textContent = getPayableTotal().toFixed(2);
   }
 function openRevolut() {
-  const amt = getPayableTotal(); // uses items total + delivery if checkbox is checked
+  const amt = getPayableTotal();
   if (amt <= 0) return alert('Please add items to your order first.');
-
   const user = window.PAY?.revolutUser;
   if (!user) return alert('Revolut handle is not configured.');
 
   const tpl = window.PAY?.templates?.revolut
-           || 'https://revolut.me/{user}?amount={amount}&currency={cur}';
-
+            || 'https://revolut.me/{user}?amount={amount}&currency={cur}';
   const url = tpl
     .replace('{user}', encodeURIComponent(user))
     .replace('{amount}', amt.toFixed(2))
     .replace('{cur}', window.PAY?.currency || 'EUR');
+  
+  try {
+    const toPay = amt.toFixed(2);
+    console.log(`Opening Revolut for €${toPay}…`);
+  } catch {}
 
-  // Open immediately in the same tab → avoids popup blockers and triggers the app via universal link
+  // redirect immediately
   window.location.href = url;
 }
+
 
   function openSatispay() {
     const amt = getPayableTotal();
