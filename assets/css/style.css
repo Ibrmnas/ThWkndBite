@@ -62,9 +62,8 @@ h1 { font-size:clamp(32px,4.2vw,56px); line-height:1.05; margin:0 0 10px }
 .muted { color:var(--muted) }
 
 /* Food images (fixed border) */
-.food-img { width:100%; aspect-ratio:16/9; height:auto; object-fit:cover; border-radius:12px; border:1px solid #eee; margin-bottom:10px }
+.food-img { width:100%; aspect-ratio:16/9; height:auto; object-fit:cover; border-radius:12px; border:1px; margin-bottom:10px }
 
-/* Notices / grids */
 .notice { background:#fff; border:1px solid var(--border); border-radius:12px; padding:12px 14px; margin-top:10px }
 .grid-3 { display:grid; grid-template-columns:repeat(3,1fr); gap:16px }
 .grid-2 { display:grid; grid-template-columns:repeat(2,1fr); gap:16px }
@@ -248,58 +247,3 @@ table.table tfoot td { font-weight:900 }
   .customer-grid .card:nth-child(3){ grid-column:2; } /* Address*/
 }
 
-/* Mobile fix: stack the 'Our Story' content vertically */
-@media (max-width: 640px) {
-  .cards { 
-    display: flex; /* use flexbox */
-    flex-direction: column; /* stack elements vertically */
-    gap: 16px; /* add some spacing between cards */
-  }
-
-  .card { 
-    width: 100%; /* make sure each card takes full width */
-  }
-}
-
-/* ===========================
-   Customer Details / About Section (Mobile Grid)
-=========================== */
-
-/* Default for Desktop/Tablets (Two columns) */
-.grid-2 {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
-}
-
-@media (max-width: 640px) {
-  /* On small screens, make the layout stack vertically (one column) */
-  .grid-2 {
-    display: flex;
-    flex-direction: column;  /* Stack the elements vertically */
-    gap: 16px;  /* Add some space between the elements */
-  }
-
-  .grid-2 .card {
-    width: 100%;  /* Ensure the cards take full width on mobile */
-  }
-}
-
-/* ===========================
-   Customer details grid (Address next to Email on mobile)
-=========================== */
-@media (max-width:640px){
-  .customer-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;  /* 2 columns on phone */
-    gap: 16px;  /* space between the fields */
-  }
-
-  /* Make sure Name and Phone stay in the first row */
-  .customer-grid .card:nth-child(1) { grid-column: 1; } /* Name */
-  .customer-grid .card:nth-child(2) { grid-column: 2; } /* Phone */
-
-  /* Make sure Email and Address stay in the second row */
-  .customer-grid .card:nth-child(4) { grid-column: 1; } /* Email */
-  .customer-grid .card:nth-child(3) { grid-column: 2; } /* Address */
-}
