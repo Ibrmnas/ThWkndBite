@@ -24,7 +24,7 @@
     tds.forEach((td, i) => td.setAttribute('data-label', heads[i] || ''));
   }
 
-  // --- totals (NEW: base vs payable) ---
+  // --- totals (base vs payable) ---
   function getBaseTotal() {
     const el = document.getElementById('grand');
     const n = el ? parseFloat(String(el.textContent).replace(/[^\d.,]/g, '').replace(',', '.')) : 0;
@@ -38,44 +38,36 @@
     return total;
   }
 
-  // --- payments (UPDATED to use payable total) ---
+  // --- payments ---
   function togglePayButtons() {
     const disabled = getPayableTotal() <= 0;
     ['pay-revolut', 'pay-satispay'].forEach(id => {
       const b = document.getElementById(id);
       if (b) b.disabled = disabled;
     });
-    // optional "to pay" line if you added <span id="to-pay">
-    const toPay = document.getElementById('to-pay');
+    const toPay = document.getElementById('to-pay'); // optional
     if (toPay) toPay.textContent = getPayableTotal().toFixed(2);
   }
-
   function openRevolut() {
     const amt = getPayableTotal();
     if (amt <= 0) return alert('Please add items to your order first.');
-    if (!window.PAY || !window.PAY.revolutUser) {
-      return alert('Revolut handle is not configured.');
-    }
-    // Use your configured template; defaults to path style if not set
+    if (!window.PAY || !window.PAY.revolutUser) return alert('Revolut handle is not configured.');
     const t = window.PAY.templates?.revolut || 'https://revolut.me/{user}/{amount}?currency={cur}';
     const url = t
       .replace('{user}', window.PAY.revolutUser)
       .replace('{amount}', amt.toFixed(2))
       .replace('{cur}', window.PAY.currency || 'EUR');
-    window.open(url, '_blank');
+    window.open(url, '_blank', 'noopener');
   }
-
   function openSatispay() {
     const amt = getPayableTotal();
     if (amt <= 0) return alert('Please add items to your order first.');
-    if (!window.PAY || !window.PAY.satispayTag) {
-      return alert('Satispay tag is not configured.');
-    }
+    if (!window.PAY || !window.PAY.satispayTag) return alert('Satispay tag is not configured.');
     const t = window.PAY.templates?.satispay || 'https://tag.satispay.com/{tag}?amount={amount}';
     const url = t
       .replace('{tag}', window.PAY.satispayTag)
       .replace('{amount}', amt.toFixed(2));
-    window.open(url, '_blank');
+    window.open(url, '_blank', 'noopener');
   }
 
   /* ---------- row builder ---------- */
@@ -147,10 +139,7 @@
     const del = document.createElement('button');
     del.textContent = '✕';
     del.className = 'btn';
-    del.addEventListener('click', () => {
-      tr.remove();
-      recalc();
-    });
+    del.addEventListener('click', () => { tr.remove(); recalc(); });
     tdAct.appendChild(del);
 
     [tdItem, tdPrice, tdQty, tdNotes, tdTot, tdAct].forEach(x => tr.appendChild(x));
@@ -182,12 +171,8 @@
       qty.value = next.toFixed(1);
       sync();
     });
-    qty.addEventListener('blur', () => {
-      qty.value = snapToHalf(qty.value).toFixed(1);
-      sync();
-    });
-    // prevent wheel changing qty while scrolling
-    qty.addEventListener('wheel', e => e.preventDefault(), { passive:false });
+    qty.addEventListener('blur', () => { qty.value = snapToHalf(qty.value).toFixed(1); sync(); });
+    qty.addEventListener('wheel', e => e.preventDefault(), { passive:false }); // prevent scroll change
 
     sel.addEventListener('change', sync);
     qty.addEventListener('input', sync);
@@ -219,10 +204,7 @@
   /* ---------- submit ---------- */
   async function sendToSheet() {
     const endpoint = window.WB_ENDPOINT || '';
-    if (!endpoint) {
-      alert('Admin: please set WB_ENDPOINT in assets/js/backend.js');
-      return;
-    }
+    if (!endpoint) { alert('Admin: please set WB_ENDPOINT in assets/js/backend.js'); return; }
 
     // Build items from rows
     const items = [];
@@ -247,9 +229,7 @@
 
     const emailEl = document.getElementById('c-email');
     if (!emailEl || !emailEl.value.trim() || !emailEl.checkValidity()) {
-      emailEl?.reportValidity();
-      emailEl?.focus();
-      return;
+      emailEl?.reportValidity(); emailEl?.focus(); return;
     }
 
     const allergies = (document.getElementById('c-allergies')?.value || '').trim();
@@ -268,14 +248,12 @@
     };
 
     if (!payload.name || !payload.phone || !payload.address || items.length === 0) {
-      alert('Please fill your details and add at least one item.');
-      return;
+      alert('Please fill your details and add at least one item.'); return;
     }
 
     const btn = document.getElementById('place-order');
     const prev = btn.textContent;
-    btn.textContent = 'Sending...';
-    btn.disabled = true;
+    btn.textContent = 'Sending...'; btn.disabled = true;
 
     const controller = new AbortController();
     const t = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
@@ -309,8 +287,7 @@
       alert('Network / submit error: ' + err.message);
     } finally {
       clearTimeout(t);
-      btn.textContent = prev;
-      btn.disabled = false;
+      btn.textContent = prev; btn.disabled = false;
     }
   }
 
@@ -321,10 +298,7 @@
     recalc();
 
     document.getElementById('add').addEventListener('click', () => addRow(tbody));
-    document.getElementById('clear').addEventListener('click', () => {
-      tbody.innerHTML = '';
-      recalc();
-    });
+    document.getElementById('clear').addEventListener('click', () => { tbody.innerHTML = ''; recalc(); });
 
     const csvBtn = document.getElementById('csv');
     if (csvBtn) {
@@ -339,15 +313,10 @@
           const total = tr.querySelector('td:nth-child(5) input').value;
           rows.push([sel.options[sel.selectedIndex].text, price, qty, notes, total, allergies]);
         });
-        const csv = rows
-          .map(r => r.map(x => '"' + String(x).replace(/"/g, '""') + '"').join(','))
-          .join('\n');
+        const csv = rows.map(r => r.map(x => '"' + String(x).replace(/"/g, '""') + '"').join(',')).join('\n');
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'order-' + new Date().toISOString().slice(0, 10) + '.csv';
-        a.click();
+        const a = document.createElement('a'); a.href = url; a.download = 'order-' + new Date().toISOString().slice(0, 10) + '.csv'; a.click();
         URL.revokeObjectURL(url);
       });
     }
