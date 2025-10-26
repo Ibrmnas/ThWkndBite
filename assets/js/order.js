@@ -52,7 +52,7 @@
     const amt = getPayableTotal();
     if (amt <= 0) return alert('Please add items to your order first.');
     if (!window.PAY || !window.PAY.revolutUser) return alert('Revolut handle is not configured.');
-    const t = window.PAY.templates?.revolut || 'https://revolut.me/{user}/{amount}?currency={cur}';
+    const t = window.PAY.templates?.revolut || 'https://revolut.me/ibrahip44g/{amount}?currency={cur}';
     const url = t
       .replace('{user}', window.PAY.revolutUser)
       .replace('{amount}', amt.toFixed(2))
