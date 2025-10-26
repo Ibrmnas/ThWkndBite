@@ -271,3 +271,21 @@ table.table tfoot td { font-weight:900 }
     width: 100%;  /* Ensure the cards take full width on mobile */
   }
 }
+
+
+/* ===== Customer details: 1 column on phones (4 rows) ===== */
+@media (max-width: 640px){
+  /* make the wrapper a single column and kill any earlier placements */
+  .grid-3.customer-grid,
+  .grid-3:has(> .card:nth-child(4)) {
+    display: grid;
+    grid-template-columns: 1fr !important;
+    gap: 16px;
+  }
+  .grid-3.customer-grid .card,
+  .grid-3:has(> .card:nth-child(4)) > .card {
+    grid-column: 1 !important;   /* ignore previous per-cell grid-column rules */
+    width: 100%;
+  }
+}
+
