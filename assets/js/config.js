@@ -47,3 +47,27 @@ window.SITE_CONFIG = {
     }
   ]
 };
+
+/* ---------------------------
+   Payment config (Revolut/Satispay)
+   Used by the payment buttons on Order page
+--------------------------- */
+window.PAY = {
+  currency: 'EUR',
+
+  // TODO: put your real handles here
+  revolutUser: 'ibrahip44g',    // e.g. revolut.me/yourrevolut
+  satispayTag: 'yoursatispay',   // e.g. tag.satispay.com/yoursatispay
+
+  // URL templates — keep {amount}, {user}, {tag}, {cur}
+  templates: {
+    // Most personal Revolut links support the path format below:
+    revolut: 'https://revolut.me/ibrahip44g/{amount}?currency={cur}',
+    // If your link uses a query format, use this instead:
+    // revolut: 'https://revolut.me/{user}?amount={amount}&currency={cur}',
+
+    // Satispay tag link (adjust to satispay.me if your account uses that)
+    satispay: 'https://tag.satispay.com/{tag}?amount={amount}'
+    // satispay: 'https://satispay.me/{tag}?amount={amount}'
+  }
+};
