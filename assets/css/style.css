@@ -61,8 +61,8 @@ h1 { font-size:clamp(32px,4.2vw,56px); line-height:1.05; margin:0 0 10px }
 .price { font-weight:900; color:var(--brand) }
 .muted { color:var(--muted) }
 
-/* Food images */
-.food-img { width:100%; aspect-ratio:16/9; height:auto; object-fit:cover; border-radius:12px; border:1px; margin-bottom:10px }
+/* Food images (fixed border) */
+.food-img { width:100%; aspect-ratio:16/9; height:auto; object-fit:cover; border-radius:12px; border:1px solid #eee; margin-bottom:10px }
 @media (hover:hover){ .food-img:hover{ object-fit:contain; transform:scale(1.4) rotate(90deg) } }
 
 .notice { background:#fff; border:1px solid var(--border); border-radius:12px; padding:12px 14px; margin-top:10px }
@@ -216,4 +216,19 @@ table.table tfoot td { font-weight:900 }
   table.table tbody td:nth-child(2),
   table.table tbody td:nth-child(4),
   table.table tbody td:nth-child(6){ grid-column:1; justify-self:end }
+}
+
+/* ===========================
+   Customer details grid (Address next to Email)
+=========================== */
+/* Works automatically when the grid has 4 cards (Name, Phone, Address, Email).
+   Fallback .customer-grid class is provided for older browsers. */
+@supports (selector(.grid-3:has(> .card))) {
+  @media (min-width: 768px) {
+    .grid-3:has(> .card:nth-child(4)) { grid-template-columns: 1fr 1fr; gap: 16px; }
+  }
+}
+/* Optional fallback: add class="grid-3 customer-grid" in HTML if needed */
+@media (min-width: 768px){
+  .customer-grid { grid-template-columns: 1fr 1fr; gap: 16px; }
 }
