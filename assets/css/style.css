@@ -197,6 +197,66 @@ table.table tfoot td{font-weight:900}
   }
 }
 
+/* ===== Order table → stacked cards on phones ===== */
+@media (max-width: 640px){
+  .table-wrap{ overflow: visible !important; box-shadow: none; } /* no hidden overflow */
+
+  /* hide header, we’ll show per-cell labels */
+  table.table thead{ display:none; }
+
+  /* row becomes a card */
+  table.table tbody tr{
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* 2 columns grid */
+    gap: 10px 12px;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 10px;
+  }
+
+  /* cells are label + control */
+  table.table tbody td{
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 0;                   /* remove table padding */
+    border: 0;                    /* remove row separators */
+  }
+  table.table tbody td::before{
+    content: attr(data-label);    /* label comes from data-label */
+    font-weight: 700;
+    font-size: .9rem;
+    color: var(--ink);
+    opacity: .85;
+  }
+
+  /* inputs/selects fill nicely */
+  table.table select,
+  table.table input{
+    width: 100%;
+    min-width: 0;
+    height: 38px;
+  }
+  /* center numeric fields */
+  table.table td:nth-child(2) input,
+  table.table td:nth-child(3) input,
+  table.table td:nth-child(5) input{ text-align:center; }
+
+  /* delete button sits on the right column */
+  table.table tbody td:last-child{
+    grid-column: 2;
+    display: flex; align-items:center; justify-content:flex-end;
+  }
+  table.table tbody td:last-child .btn{
+    width: 36px; height: 36px; padding: 0;
+    display: inline-flex; align-items:center; justify-content:center;
+  }
+
+  /* tfoot stays normal below */
+  table.table tfoot td{ padding: 10px 0; }
+}
 
 
 
