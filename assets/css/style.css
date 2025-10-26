@@ -248,39 +248,28 @@ table.table tfoot td { font-weight:900 }
   .customer-grid .card:nth-child(3){ grid-column:2; } /* Address*/
 }
 
+
 /* ===========================
-   Customer details grid (Address next to Email)
+   Customer Details / About Section (Mobile Grid)
 =========================== */
-/* Desktop/tablet auto 2-col if 4 cards present */
-@supports (selector(.grid-3:has(> .card))) {
-  @media (min-width:768px){
-    .grid-3:has(> .card:nth-child(4)){ grid-template-columns:1fr 1fr; gap:16px; }
-  }
-}
-/* Fallback class */
-@media (min-width:768px){
-  .customer-grid{ grid-template-columns:1fr 1fr; gap:16px; }
+
+/* Default for Desktop/Tablets (Two columns) */
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
 }
 
-/* Phone: force two columns and explicit order -> Name | Phone / Email | Address */
-@supports (selector(.grid-3:has(> .card))) {
-  @media (max-width:640px){
-    .grid-3:has(> .card:nth-child(4)){
-      display:grid; grid-template-columns:1fr 1fr; gap:16px;
-    }
-    .grid-3:has(> .card:nth-child(4)) > .card:nth-child(1){ grid-column:1; } /* Name   */
-    .grid-3:has(> .card:nth-child(4)) > .card:nth-child(2){ grid-column:2; } /* Phone  */
-    .grid-3:has(> .card:nth-child(4)) > .card:nth-child(4){ grid-column:1; } /* Email  */
-    .grid-3:has(> .card:nth-child(4)) > .card:nth-child(3){ grid-column:2; } /* Address*/
+@media (max-width: 640px) {
+  /* On small screens, make the layout stack vertically (one column) */
+  .grid-2 {
+    display: flex;
+    flex-direction: column;  /* Stack the elements vertically */
+    gap: 16px;  /* Add some space between the elements */
+  }
+
+  .grid-2 .card {
+    width: 100%;  /* Ensure the cards take full width on mobile */
   }
 }
-/* Phone fallback (use class="grid-3 customer-grid" on the wrapper) */
-@media (max-width:640px){
-  .customer-grid{
-    display:grid; grid-template-columns:1fr 1fr; gap:16px !important;
-  }
-  .customer-grid .card:nth-child(1){ grid-column:1; } /* Name   */
-  .customer-grid .card:nth-child(2){ grid-column:2; } /* Phone  */
-  .customer-grid .card:nth-child(4){ grid-column:1; } /* Email  */
-  .customer-grid .card:nth-child(3){ grid-column:2; } /* Address*/
-}
+
