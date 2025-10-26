@@ -48,17 +48,25 @@
     const toPay = document.getElementById('to-pay'); // optional
     if (toPay) toPay.textContent = getPayableTotal().toFixed(2);
   }
-  function openRevolut() {
-    const amt = getPayableTotal();
-    if (amt <= 0) return alert('Please add items to your order first.');
-    if (!window.PAY || !window.PAY.revolutUser) return alert('Revolut handle is not configured.');
-    const t = window.PAY.templates?.revolut || 'https://revolut.me/ibrahip44g/{amount}?currency={cur}';
-    const url = t
-      .replace('{user}', window.PAY.revolutUser)
-      .replace('{amount}', amt.toFixed(2))
-      .replace('{cur}', window.PAY.currency || 'EUR');
-    window.open(url, '_blank', 'noopener');
-  }
+function openRevolut() {
+  const amt = getPayableTotal(); // uses items total + delivery if checkbox is checked
+  if (amt <= 0) return alert('Please add items to your order first.');
+
+  const user = window.PAY?.revolutUser;
+  if (!user) return alert('Revolut handle is not configured.');
+
+  const tpl = window.PAY?.templates?.revolut
+           || 'https://revolut.me/{user}?amount={amount}&currency={cur}';
+
+  const url = tpl
+    .replace('{user}', encodeURIComponent(user))
+    .replace('{amount}', amt.toFixed(2))
+    .replace('{cur}', window.PAY?.currency || 'EUR');
+
+  // Open immediately in the same tab → avoids popup blockers and triggers the app via universal link
+  window.location.href = url;
+}
+
   function openSatispay() {
     const amt = getPayableTotal();
     if (amt <= 0) return alert('Please add items to your order first.');
