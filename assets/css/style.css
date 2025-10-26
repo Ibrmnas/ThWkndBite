@@ -285,3 +285,17 @@ table.table tfoot td{font-weight:900}
   }
 }
 
+
+/* Hide native number spinners only for the Qty field */
+.qty-wrap input[type="number"] {
+  appearance: textfield;           /* modern */
+  -moz-appearance: textfield;      /* Firefox */
+}
+
+/* Chrome / Edge / Safari */
+.qty-wrap input[type="number"]::-webkit-inner-spin-button,
+.qty-wrap input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
