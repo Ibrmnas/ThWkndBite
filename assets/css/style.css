@@ -285,3 +285,21 @@ table.table tfoot td { font-weight:900 }
   }
 }
 
+/* ===========================
+   Customer details grid (Address next to Email on mobile)
+=========================== */
+@media (max-width:640px){
+  .customer-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;  /* 2 columns on phone */
+    gap: 16px;  /* space between the fields */
+  }
+
+  /* Make sure Name and Phone stay in the first row */
+  .customer-grid .card:nth-child(1) { grid-column: 1; } /* Name */
+  .customer-grid .card:nth-child(2) { grid-column: 2; } /* Phone */
+
+  /* Make sure Email and Address stay in the second row */
+  .customer-grid .card:nth-child(4) { grid-column: 1; } /* Email */
+  .customer-grid .card:nth-child(3) { grid-column: 2; } /* Address */
+}
