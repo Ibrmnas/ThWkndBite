@@ -246,3 +246,42 @@ table.table tfoot td{font-weight:900}
   table.table tbody td:nth-child(6){ grid-column: 1; justify-self: end; }
 }
 
+
+
+/* ===== Desktop: keep right columns visible & aligned ===== */
+@media (min-width: 900px){
+  /* Let the table size columns naturally and don't clip the edges */
+  .table-wrap{ overflow: visible; }
+  table.table{ table-layout: auto; }
+
+  /* Reserve space for each column (tweak numbers if you like) */
+  table.table th:nth-child(2), table.table td:nth-child(2){ width: 140px; } /* Price €/kg */
+  table.table th:nth-child(3), table.table td:nth-child(3){ width: 180px; } /* Qty (+/- + input) */
+  table.table th:nth-child(5), table.table td:nth-child(5){ width: 140px; } /* Price € */
+  table.table th:nth-child(6), table.table td:nth-child(6){ width: 64px;  } /* X button */
+
+  /* Keep numeric cells readable */
+  table.table td:nth-child(2) input,
+  table.table td:nth-child(5) input{
+    width: 100%;
+    text-align: right;
+  }
+
+  /* Make the stepper compact so it doesn't steal width */
+  .qty-wrap{
+    display: inline-grid;
+    grid-template-columns: 34px minmax(70px,1fr) 34px;
+    gap: 8px;
+    vertical-align: middle;
+  }
+  .qty-btn{ width:34px; height:34px; }
+
+  /* Totals on the right, never clipped */
+  table.table tfoot td{
+    white-space: nowrap;
+    padding-right: 12px;
+    text-align: right;
+    font-weight: 900;
+  }
+}
+
