@@ -299,3 +299,42 @@ table.table tfoot td{font-weight:900}
   margin: 0;
 }
 
+/* ===== Hero chips layout on phones ===== */
+@media (max-width: 640px){
+  .hero .panel{ padding:16px 14px; }
+
+  .chips{
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0,1fr)); /* 2 equal cols */
+    gap: 10px 12px;                                   /* row / col */
+    justify-items: stretch;
+    align-items: stretch;
+    margin-top: 10px;
+  }
+  .chip{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;                 /* fill the grid cell */
+    padding: 10px 12px;
+    font-size: .95rem;
+    line-height: 1.2;
+    text-align: center;
+    white-space: normal;         /* allow wrapping */
+    word-break: break-word;      /* avoid overflow with long words */
+    border-radius: 999px;
+  }
+  /* If odd number of chips, center the last one on its own row */
+  .chips > .chip:last-child{
+    grid-column: 1 / -1;         /* span both columns */
+    justify-self: center;
+    width: 78%;                  /* a bit narrower so it looks balanced */
+  }
+}
+
+/* Very small phones: stack to one column */
+@media (max-width: 360px){
+  .chips{ grid-template-columns: 1fr; }
+  .chips > .chip:last-child{ width: 100%; }
+}
+
