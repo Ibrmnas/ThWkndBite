@@ -39,11 +39,9 @@ h1{font-size:clamp(32px,4.2vw,56px);line-height:1.05;margin:0 0 10px}
 .price{font-weight:900;color:var(--brand)}
 .muted{color:var(--muted)}
 
-.food-img{width:100%;aspect-ratio:16/9;height:auto;object-fit:cover;border-radius:12px;border:1px;margin-bottom:10px;}
-/* Only do fun hover on devices that actually hover */
-@media (hover:hover){
-  .food-img:hover{object-fit:contain;transform:scale(1.4) rotate(90deg);}
-}
+/* fixed border */
+.food-img{width:100%;aspect-ratio:16/9;height:auto;object-fit:cover;border-radius:12px;border:1px solid #eee;margin-bottom:10px;}
+@media (hover:hover){ .food-img:hover{object-fit:contain;transform:scale(1.4) rotate(90deg);} }
 
 .notice{background:#fff;border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-top:10px}
 .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
@@ -63,7 +61,16 @@ table.table th, table.table td{padding:12px 10px;border-bottom:1px solid #f1f1f1
 table.table th{background:#fff7f5;font-weight:800}
 table.table tfoot td{font-weight:900}
 
-/* Style for the form layout */
+/* Qty stepper (matches your JS) */
+.qty-wrap{display:flex;align-items:center;gap:8px}
+.qty-btn{border:1px solid var(--border);background:#fff;width:36px;height:36px;border-radius:8px;font-weight:800;line-height:1;display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
+.qty-wrap input{text-align:center;height:36px}
+@media (max-width:640px){
+  .qty-wrap{gap:6px}
+  .qty-btn{width:34px;height:34px}
+}
+
+/* Form layout */
 .form-group{margin-bottom:15px}
 .form-group label{display:block;font-weight:bold;margin-bottom:5px}
 .form-group input,.form-group textarea{width:100%;padding:10px;font-size:16px;border:1px solid #ccc;border-radius:5px}
@@ -72,39 +79,16 @@ table.table tfoot td{font-weight:900}
 .form-group button:hover{background-color:#7a160f}
 
 /* ---------- RESPONSIVE TWEAKS ---------- */
-
-/* Collapse card grids earlier (fix for .grid-2 too) */
 @media (max-width:900px){ .cards{grid-template-columns:1fr} }
 @media (max-width:640px){
   .grid-2{grid-template-columns:1fr}
   .grid-3{grid-template-columns:1fr}
 }
-
-/* Section padding lighter on phones */
 @media (max-width:520px){ .section{padding:20px 0} }
-
-/* Actions: full-width buttons on mobile */
-@media (max-width:520px){
-  .actions{flex-direction:column}
-  .actions .btn{width:100%;text-align:center}
-}
-
-/* Table compact on narrow */
-@media (max-width:520px){
-  table.table th,table.table td{padding:10px 8px;font-size:14px}
-}
-
-/* Forms a bit tighter on small screens */
-@media (max-width:768px){
-  .form-group{margin-bottom:12px}
-  .form-group input,.form-group textarea,.form-group button{font-size:14px}
-  .form-group button{padding:12px 16px;width:100%}
-}
-
-/* Keep hero title on one line on desktop */
-@media (min-width:1000px){
-  .hero .panel h1{white-space:nowrap;overflow-wrap:normal}
-}
+@media (max-width:520px){ .actions{flex-direction:column} .actions .btn{width:100%;text-align:center} }
+@media (max-width:520px){ table.table th,table.table td{padding:10px 8px;font-size:14px} }
+@media (max-width:768px){ .form-group{margin-bottom:12px} .form-group input,.form-group textarea,.form-group button{font-size:14px} .form-group button{padding:12px 16px;width:100%} }
+@media (min-width:1000px){ .hero .panel h1{white-space:nowrap;overflow-wrap:normal} }
 
 /* ===== Mobile header: brand, links, EN/IT (right) ===== */
 @media (max-width: 640px){
@@ -128,94 +112,73 @@ table.table tfoot td{font-weight:900}
     display:flex;
     flex-wrap:wrap;
     gap:6px;
-    justify-content:center;      /* or flex-start if you prefer left */
+    justify-content:center; /* or flex-start */
     overflow:visible;
     white-space:normal;
   }
-  .navlinks a{
-    padding:6px 10px;
-    font-size:14px;
-    border-radius:999px;
-  }
+  .navlinks a{ padding:6px 10px; font-size:14px; border-radius:999px; }
 
   .lang{
     grid-area:lang;
     display:flex;
     gap:8px;
-    justify-content:flex-end;    /* EN/IT on the right under links */
+    justify-content:flex-end; /* EN/IT on the right under links */
   }
 
-  /* Hero tighten on phones */
   .hero .panel{ padding:16px; }
   h1{ font-size:clamp(24px,7vw,34px); margin-bottom:8px; }
   .kicker{ font-size:.8rem; margin-bottom:6px; }
   .chips{ gap:6px; }
   .chip{ padding:6px 10px; font-size:.92rem; }
 
-  /* Disable image hover tricks on touch */
   .food-img:hover{ transform:none !important; object-fit:cover !important; }
 }
 
 /* ===== Order table → stacked cards on phones ===== */
 @media (max-width: 640px){
-  .table-wrap{ overflow: visible !important; box-shadow: none; } /* no hidden overflow */
-
-  /* hide header, we’ll show per-cell labels */
+  .table-wrap{ overflow: visible !important; box-shadow: none; }
   table.table thead{ display:none; }
 
-  /* row becomes a card */
   table.table tbody tr{
-    display: grid;
-    grid-template-columns: 1fr 1fr; /* 2 columns grid */
-    gap: 10px 12px;
-    background: #fff;
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 12px;
-    margin-bottom: 10px;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px 12px;
+    background:#fff;
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:12px;
+    margin-bottom:10px;
   }
-
-  /* cells are label + control */
   table.table tbody td{
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    padding: 0;                   /* remove table padding */
-    border: 0;                    /* remove row separators */
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    padding:0;
+    border:0;
   }
   table.table tbody td::before{
-    content: attr(data-label);    /* label comes from data-label */
-    font-weight: 700;
-    font-size: .9rem;
-    color: var(--ink);
-    opacity: .85;
+    content:attr(data-label);
+    font-weight:700;
+    font-size:.9rem;
+    color:var(--ink);
+    opacity:.85;
   }
 
-  /* inputs/selects fill nicely */
   table.table select,
-  table.table input{
-    width: 100%;
-    min-width: 0;
-    height: 38px;
-  }
-  /* center numeric fields */
+  table.table input{ width:100%; min-width:0; height:38px; }
+
   table.table td:nth-child(2) input,
   table.table td:nth-child(3) input,
   table.table td:nth-child(5) input{ text-align:center; }
 
-  /* delete button sits on the right column */
   table.table tbody td:last-child{
-    grid-column: 2;
-    display: flex; align-items:center; justify-content:flex-end;
+    grid-column:2;
+    display:flex; align-items:center; justify-content:flex-end;
   }
   table.table tbody td:last-child .btn{
-    width: 36px; height: 36px; padding: 0;
-    display: inline-flex; align-items:center; justify-content:center;
+    width:36px; height:36px; padding:0;
+    display:inline-flex; align-items:center; justify-content:center;
   }
 
-  /* tfoot stays normal below */
-  table.table tfoot td{ padding: 10px 0; }
+  table.table tfoot td{ padding:10px 0; }
 }
-
-
-
