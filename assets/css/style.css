@@ -110,7 +110,7 @@ table.table tfoot td { font-weight:900 }
    Responsive
 =========================== */
 
-/* Desktop adjustments (prevent clipping on the right columns) */
+/* Desktop: prevent clipping on right columns */
 @media (min-width:900px){
   .table-wrap{ overflow:visible }
   table.table{ table-layout:auto }
@@ -155,7 +155,7 @@ table.table tfoot td { font-weight:900 }
   .kicker{ font-size:.8rem; margin-bottom:6px }
   .food-img:hover{ transform:none !important; object-fit:cover !important }
 
-  /* Chips → 2 columns, centered last if odd */
+  /* Chips → 2 columns; only center last when odd */
   .chips{
     display:grid !important; grid-template-columns:repeat(2,minmax(0,1fr));
     gap:10px 12px; justify-items:stretch; align-items:stretch; margin-top:10px;
@@ -165,7 +165,12 @@ table.table tfoot td { font-weight:900 }
     width:100%; padding:10px 12px; font-size:.95rem; line-height:1.2;
     text-align:center; white-space:normal; word-break:break-word; border-radius:999px;
   }
-  .chips > .chip:last-child{ grid-column:1 / -1; justify-self:center; width:78% }
+  /* default: no special centering for the last chip */
+  .chips > .chip:last-child{ grid-column:auto; width:100% }
+  /* when odd count, center the last chip on its own row */
+  .chips > .chip:last-child:nth-child(odd){
+    grid-column:1 / -1; justify-self:center; width:78%;
+  }
 
   /* Order table → stacked card layout */
   .table-wrap{ overflow:visible !important; box-shadow:none }
