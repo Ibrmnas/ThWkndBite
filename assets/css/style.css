@@ -61,7 +61,7 @@ h1 { font-size:clamp(32px,4.2vw,56px); line-height:1.05; margin:0 0 10px }
 .price { font-weight:900; color:var(--brand) }
 .muted { color:var(--muted) }
 
-/* Food images (fixed border) */
+/* Food images */
 .food-img { width:100%; aspect-ratio:16/9; height:auto; object-fit:cover; border-radius:12px; border:1px solid #eee; margin-bottom:10px }
 
 /* Notices / grids */
@@ -114,10 +114,10 @@ table.table tfoot td { font-weight:900 }
 @media (min-width:900px){
   .table-wrap{ overflow:visible }
   table.table{ table-layout:auto }
-  table.table th:nth-child(2), table.table td:nth-child(2){ width:140px } /* Price €/kg */
-  table.table th:nth-child(3), table.table td:nth-child(3){ width:180px } /* Qty stepper */
-  table.table th:nth-child(5), table.table td:nth-child(5){ width:140px } /* Price € */
-  table.table th:nth-child(6), table.table td:nth-child(6){ width:64px }  /* X */
+  table.table th:nth-child(2), table.table td:nth-child(2){ width:140px }
+  table.table th:nth-child(3), table.table td:nth-child(3){ width:180px }
+  table.table th:nth-child(5), table.table td:nth-child(5){ width:140px }
+  table.table th:nth-child(6), table.table td:nth-child(6){ width:64px }
   table.table td:nth-child(2) input, table.table td:nth-child(5) input{ width:100%; text-align:right }
   .qty-wrap{ display:inline-grid; grid-template-columns:34px minmax(70px,1fr) 34px; gap:8px; vertical-align:middle }
   .qty-btn{ width:34px; height:34px }
@@ -225,67 +225,24 @@ table.table tfoot td { font-weight:900 }
   .customer-grid{ grid-template-columns:1fr 1fr; gap:16px; }
 }
 
-/* Phone: force two columns and explicit order -> Name | Phone / Email | Address */
-@supports (selector(.grid-3:has(> .card))) {
-  @media (max-width:640px){
-    .grid-3:has(> .card:nth-child(4)){
-      display:grid; grid-template-columns:1fr 1fr; gap:16px;
-    }
-    .grid-3:has(> .card:nth-child(4)) > .card:nth-child(1){ grid-column:1; } /* Name   */
-    .grid-3:has(> .card:nth-child(4)) > .card:nth-child(2){ grid-column:2; } /* Phone  */
-    .grid-3:has(> .card:nth-child(4)) > .card:nth-child(4){ grid-column:1; } /* Email  */
-    .grid-3:has(> .card:nth-child(4)) > .card:nth-child(3){ grid-column:2; } /* Address*/
+/* ===== Customer details: 1 column on phones (4 rows) ===== */
+@media (max-width: 640px){
+  /* force single column for both the :has path and the .customer-grid path */
+  .grid-3.customer-grid,
+  .grid-3:has(> .card:nth-child(4)){
+    display:grid; grid-template-columns:1fr !important; gap:16px;
   }
-}
-/* Phone fallback (use class="grid-3 customer-grid" on the wrapper) */
-@media (max-width:640px){
-  .customer-grid{
-    display:grid; grid-template-columns:1fr 1fr; gap:16px !important;
+  .grid-3.customer-grid .card,
+  .grid-3:has(> .card:nth-child(4)) > .card{
+    grid-column:1 !important; width:100%;
   }
-  .customer-grid .card:nth-child(1){ grid-column:1; } /* Name   */
-  .customer-grid .card:nth-child(2){ grid-column:2; } /* Phone  */
-  .customer-grid .card:nth-child(4){ grid-column:1; } /* Email  */
-  .customer-grid .card:nth-child(3){ grid-column:2; } /* Address*/
 }
 
 /* ===========================
-   Customer Details / About Section (Mobile Grid)
+   About Section (stack cards on phones)
 =========================== */
-
-/* Default for Desktop/Tablets (Two columns) */
-.grid-2 {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
+.grid-2 { display:grid; grid-template-columns:repeat(2,1fr); gap:16px }
+@media (max-width:640px){
+  .grid-2{ display:flex; flex-direction:column; gap:16px }
+  .grid-2 .card{ width:100% }
 }
-
-@media (max-width: 640px) {
-  /* On small screens, make the layout stack vertically (one column) */
-  .grid-2 {
-    display: flex;
-    flex-direction: column;  /* Stack the elements vertically */
-    gap: 16px;  /* Add some space between the elements */
-  }
-
-  .grid-2 .card {
-    width: 100%;  /* Ensure the cards take full width on mobile */
-  }
-}
-
-
-/* ===== Customer details: 1 column on phones (4 rows) ===== */
-@media (max-width: 640px){
-  /* make the wrapper a single column and kill any earlier placements */
-  .grid-3.customer-grid,
-  .grid-3:has(> .card:nth-child(4)) {
-    display: grid;
-    grid-template-columns: 1fr !important;
-    gap: 16px;
-  }
-  .grid-3.customer-grid .card,
-  .grid-3:has(> .card:nth-child(4)) > .card {
-    grid-column: 1 !important;   /* ignore previous per-cell grid-column rules */
-    width: 100%;
-  }
-}
-
