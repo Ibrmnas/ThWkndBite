@@ -247,3 +247,17 @@ table.table tfoot td { font-weight:900 }
   .customer-grid .card:nth-child(4){ grid-column:1; } /* Email  */
   .customer-grid .card:nth-child(3){ grid-column:2; } /* Address*/
 }
+
+/* Mobile fix: stack the 'Our Story' content vertically */
+@media (max-width: 640px) {
+  .cards { 
+    display: flex; /* use flexbox */
+    flex-direction: column; /* stack elements vertically */
+    gap: 16px; /* add some spacing between cards */
+  }
+
+  .card { 
+    width: 100%; /* make sure each card takes full width */
+  }
+}
+
