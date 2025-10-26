@@ -155,3 +155,48 @@ table.table tfoot td{font-weight:900}
   /* Disable image hover tricks on touch */
   .food-img:hover{ transform:none !important; object-fit:cover !important; }
 }
+
+/* ===== Order table – mobile fix ===== */
+@media (max-width:640px){
+  /* allow horizontal scroll on the table wrapper */
+  .table-wrap{
+    overflow-x: auto;          /* override the earlier overflow:hidden */
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* keep columns readable by giving the table a min width */
+  table.table{
+    min-width: 720px;          /* adjust to taste: 680–760px works well */
+    table-layout: fixed;
+  }
+
+  /* tighten paddings */
+  table.table th, table.table td{
+    padding: 10px 8px;
+  }
+
+  /* make controls fill their cells nicely */
+  table.table select,
+  table.table input{
+    width: 100%;
+    min-width: 0;              /* prevent inputs from forcing extra width */
+    height: 36px;
+  }
+
+  /* center the numeric fields for clarity */
+  table.table td:nth-child(2) input,  /* Price €/kg */
+  table.table td:nth-child(3) input,  /* Qty (kg)  */
+  table.table td:nth-child(5) input{  /* Price €   */
+    text-align: center;
+  }
+
+  /* keep the delete button compact */
+  table.table td:last-child .btn{
+    width: 36px; height: 36px; padding: 0;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+}
+
+
+
+
