@@ -34,13 +34,31 @@
     price.readOnly = true;
     tdPrice.appendChild(price);
 
-    // Qty
-    const tdQty = td();
-    const qty = document.createElement('input');
-    qty.type = 'number';
-    qty.step = '0.5';
-    qty.min = '0.5';
-    tdQty.appendChild(qty);
+// Qty with ± stepper (0.5 kg)
+const tdQty = td();
+const qtyWrap = document.createElement('div');
+qtyWrap.className = 'qty-wrap';
+
+const minus = document.createElement('button');
+minus.type = 'button';
+minus.className = 'qty-btn';
+minus.textContent = '–';
+
+const qty = document.createElement('input');
+qty.type = 'number';
+qty.step = '0.5';
+qty.min  = '0.5';
+qty.inputMode = 'decimal';   // better mobile keyboard
+qty.placeholder = '0.5';
+
+const plus = document.createElement('button');
+plus.type = 'button';
+plus.className = 'qty-btn';
+plus.textContent = '+';
+
+qtyWrap.append(minus, qty, plus);
+tdQty.appendChild(qtyWrap);
+
 
     // Notes
     const tdNotes = td();
@@ -70,6 +88,7 @@
     [tdItem, tdPrice, tdQty, tdNotes, tdTot, tdAct].forEach(x => tr.appendChild(x));
     tbody.appendChild(tr);
 
+
     function sync() {
       const it = map[sel.value];
       const p = it ? it.price : 0;
@@ -92,6 +111,34 @@
     sync();
   }
 
+
+function snapToHalf(n){
+  n = Number(n) || 0;
+  return Math.max(0.5, Math.round(n * 2) / 2);
+}
+
+minus.addEventListener('click', () => {
+  const current = Number(qty.value) || 0;
+  const next = Math.max(0.5, current - 0.5);
+  qty.value = next.toFixed(1);
+  sync();
+});
+
+plus.addEventListener('click', () => {
+  const current = Number(qty.value) || 0;
+  const next = current + 0.5;
+  qty.value = next.toFixed(1);
+  sync();
+});
+
+// Snap any typed value to nearest 0.5 on blur
+qty.addEventListener('blur', () => {
+  const snapped = snapToHalf(qty.value);
+  qty.value = snapped.toFixed(1);
+  sync();
+});
+
+  
   function recalc() {
     let sum = 0;
     document.querySelectorAll('tbody tr').forEach(tr => {
