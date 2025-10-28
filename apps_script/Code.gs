@@ -3,6 +3,8 @@ const SHEET_ID     = '1JK3ybIsYrMhb3PifwmedKbQcY5Jy6IZnucRjY_Xc5aw';     // e.g.
 const SHEET_NAME   = 'Orders';
 const NOTIFY_EMAIL = 'thewkndbitetorino@gmail.com';
 const TZ           = 'Europe/Rome';
+const FROM_NAME = 'The Weekend Bite';  // shows as sender name in inbox
+const REPLY_TO  = 'thewkndbitetorino@gmail.com'; // replies go here
 
 // (Optional) for quick pay links in the email:
 const REVOLUT_USER = 'yourrevolut';     // e.g. revolut.me/yourrevolut
@@ -136,6 +138,66 @@ function doPost(e){
       subject: `New Order: ${id} (Payable €${payable.toFixed(2)})`,
       htmlBody: html
     });
+
+
+// --- Send confirmation email to the customer (if they provided a valid email)
+(function sendClientEmail(){
+  var customerEmail = (data.email || '').trim();
+  if (!customerEmail) return;  // no email provided, skip
+
+  // very light validation
+  var ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerEmail);
+  if (!ok) return;
+
+  var revLink = REVOLUT_USER
+    ? `https://revolut.me/${encodeURIComponent(REVOLUT_USER)}?amount=${payable.toFixed(2)}&currency=${encodeURIComponent(CURRENCY)}`
+    : '';
+  var satLink = SATISPAY_TAG
+    ? `https://tag.satispay.com/${encodeURIComponent(SATISPAY_TAG)}?amount=${payable.toFixed(2)}`
+    : '';
+
+  var clientHtml = `
+    <div style="font-family:Arial,Helvetica,sans-serif;line-height:1.45">
+      <h3 style="margin:0 0 8px">Thanks! We received your order.</h3>
+      <p style="margin:0 0 8px"><b>Order ID:</b> ${escapeHtml(id)}</p>
+
+      <p style="margin:0 0 8px">
+        <b>Name:</b> ${escapeHtml(data.name)}<br>
+        <b>Phone:</b> ${escapeHtml(data.phone)}<br>
+        <b>Address:</b> ${escapeHtml(data.address)}
+      </p>
+
+      <p><b>Order summary</b></p>
+      <div style="padding:10px;border:1px solid #eee;border-radius:8px;margin-bottom:10px;white-space:pre-line">
+        ${escapeHtml(itemsPretty)}
+      </div>
+
+      <p style="margin:6px 0">
+        <b>Items total:</b> €${itemsTotal.toFixed(2)}<br>
+        <b>Delivery fee:</b> €${delFee.toFixed(2)} (${includeDelivery ? 'included' : 'not included'})<br>
+        <b>To pay:</b> €${payable.toFixed(2)} ${escapeHtml(data.currency || CURRENCY || 'EUR')}
+      </p>
+
+      ${ (revLink || satLink) ? `
+        <p style="margin:12px 0 8px"><b>Pay now</b></p>
+        ${revLink ? `<p style="margin:4px 0"><a href="${revLink}">Pay with Revolut (€${payable.toFixed(2)})</a></p>` : ``}
+        ${satLink ? `<p style="margin:4px 0"><a href="${satLink}">Pay with Satispay (€${payable.toFixed(2)})</a></p>` : ``}
+      ` : ``}
+
+      <p style="margin-top:14px;color:#666">If any detail is wrong, just reply to this email.</p>
+    </div>
+  `;
+
+  MailApp.sendEmail({
+    to: customerEmail,
+    subject: `We received your order – ${id}`,
+    htmlBody: clientHtml,
+    name: (typeof FROM_NAME !== 'undefined' ? FROM_NAME : undefined),
+    replyTo: (typeof REPLY_TO !== 'undefined' ? REPLY_TO : undefined)
+  });
+})();
+
+
 
     return ContentService
       .createTextOutput(JSON.stringify({ ok:true, id }))
