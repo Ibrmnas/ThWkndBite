@@ -52,7 +52,7 @@ function doPost(e){
     // columns we want to maintain
     const HEADERS = [
       'Timestamp','Order ID','Name','Phone','Email','Address',
-      'Items JSON','Items Total','Delivery Fee','Include Delivery',
+      'Items JSON','Items (pretty)','Items Total','Delivery Fee','Include Delivery',
       'Payable Total','Currency','Payment Method','Notes','Allergies','Lang','UA'
     ];
     ensureHeaders_(sheet, HEADERS);
@@ -69,28 +69,41 @@ function doPost(e){
     const includeDelivery = !!data.include_delivery;
     const payable = includeDelivery ? (itemsTotal + delFee) : itemsTotal;
 
+    // NEW: build a readable multi-line list
+    const itemsPretty = items.map(it => {
+      const lt = (Number(it.price)||0) * (Number(it.qty)||0);
+      return `${it.name} — ${it.qty} kg @ €${it.price}/kg = €${lt.toFixed(2)}`;
+    }).join('\n');
+
     // write row by header name
     appendByHeader_(sheet, {
-      'Timestamp'     : Utilities.formatDate(ts, TZ, 'yyyy-MM-dd HH:mm:ss'),
-      'Order ID'      : id,
-      'Name'          : data.name || '',
-      'Phone'         : data.phone || '',
-      'Email'         : data.email || '',
-      'Address'       : data.address || '',
-      'Items JSON'    : JSON.stringify(items),
-      'Items Total'   : Number(itemsTotal.toFixed(2)),
-      'Delivery Fee'  : Number(delFee.toFixed(2)),
+      'Timestamp'       : Utilities.formatDate(ts, TZ, 'yyyy-MM-dd HH:mm:ss'),
+      'Order ID'        : id,
+      'Name'            : data.name || '',
+      'Phone'           : data.phone || '',
+      'Email'           : data.email || '',
+      'Address'         : data.address || '',
+      'Items JSON'      : JSON.stringify(items),
+      'Items (pretty)'  : itemsPretty,                                  // NEW
+      'Items Total'     : Number(itemsTotal.toFixed(2)),
+      'Delivery Fee'    : Number(delFee.toFixed(2)),
       'Include Delivery': includeDelivery ? 'yes' : 'no',
-      'Payable Total' : Number(payable.toFixed(2)),
-      'Currency'      : (data.currency || CURRENCY || 'EUR'),
-      'Payment Method': (data.pay_method || 'none'),
-      'Notes'         : data.notes || '',
-      'Allergies'     : data.allergies || '',
-      'Lang'          : data.lang || '',
-      'UA'            : data.ua || ''
+      'Payable Total'   : Number(payable.toFixed(2)),
+      'Currency'        : (data.currency || CURRENCY || 'EUR'),
+      'Payment Method'  : (data.pay_method || 'none'),
+      'Notes'           : data.notes || '',
+      'Allergies'       : data.allergies || '',
+      'Lang'            : data.lang || '',
+      'UA'              : data.ua || ''
     });
 
-    // build email summary
+    // Optional: wrap the "Items (pretty)" cell so lines are visible
+    const lastRow = sheet.getLastRow();
+    const headers = sheet.getRange(1,1,1,sheet.getLastColumn()).getValues()[0];
+    const prettyCol = headers.indexOf('Items (pretty)') + 1;
+    if (prettyCol > 0) sheet.getRange(lastRow, prettyCol).setWrap(true);
+
+    // build email summary (admin)
     const itemsLines = items.map(it =>
       `- ${escapeHtml(it.name)} — ${escapeHtml(it.qty)} kg @ €${escapeHtml(it.price)}/kg`
     ).join('<br>');
@@ -136,68 +149,64 @@ function doPost(e){
     MailApp.sendEmail({
       to: NOTIFY_EMAIL,
       subject: `New Order: ${id} (Payable €${payable.toFixed(2)})`,
-      htmlBody: html
+      htmlBody: html,
+      name: FROM_NAME,
+      replyTo: REPLY_TO
     });
 
+    // --- Send confirmation email to the customer (if provided & valid)
+    (function sendClientEmail(){
+      var customerEmail = (data.email || '').trim();
+      if (!customerEmail) return;  // no email provided
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerEmail)) return;
 
-// --- Send confirmation email to the customer (if they provided a valid email)
-(function sendClientEmail(){
-  var customerEmail = (data.email || '').trim();
-  if (!customerEmail) return;  // no email provided, skip
+      var revLink = REVOLUT_USER
+        ? `https://revolut.me/${encodeURIComponent(REVOLUT_USER)}?amount=${payable.toFixed(2)}&currency=${encodeURIComponent(CURRENCY)}`
+        : '';
+      var satLink = SATISPAY_TAG
+        ? `https://tag.satispay.com/${encodeURIComponent(SATISPAY_TAG)}?amount=${payable.toFixed(2)}`
+        : '';
 
-  // very light validation
-  var ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerEmail);
-  if (!ok) return;
+      var clientHtml = `
+        <div style="font-family:Arial,Helvetica,sans-serif;line-height:1.45">
+          <h3 style="margin:0 0 8px">Thanks! We received your order.</h3>
+          <p style="margin:0 0 8px"><b>Order ID:</b> ${escapeHtml(id)}</p>
 
-  var revLink = REVOLUT_USER
-    ? `https://revolut.me/${encodeURIComponent(REVOLUT_USER)}?amount=${payable.toFixed(2)}&currency=${encodeURIComponent(CURRENCY)}`
-    : '';
-  var satLink = SATISPAY_TAG
-    ? `https://tag.satispay.com/${encodeURIComponent(SATISPAY_TAG)}?amount=${payable.toFixed(2)}`
-    : '';
+          <p style="margin:0 0 8px">
+            <b>Name:</b> ${escapeHtml(data.name)}<br>
+            <b>Phone:</b> ${escapeHtml(data.phone)}<br>
+            <b>Address:</b> ${escapeHtml(data.address)}
+          </p>
 
-  var clientHtml = `
-    <div style="font-family:Arial,Helvetica,sans-serif;line-height:1.45">
-      <h3 style="margin:0 0 8px">Thanks! We received your order.</h3>
-      <p style="margin:0 0 8px"><b>Order ID:</b> ${escapeHtml(id)}</p>
+          <p><b>Order summary</b></p>
+          <div style="padding:10px;border:1px solid #eee;border-radius:8px;margin-bottom:10px;white-space:pre-line">
+            ${escapeHtml(itemsPretty)}
+          </div>
 
-      <p style="margin:0 0 8px">
-        <b>Name:</b> ${escapeHtml(data.name)}<br>
-        <b>Phone:</b> ${escapeHtml(data.phone)}<br>
-        <b>Address:</b> ${escapeHtml(data.address)}
-      </p>
+          <p style="margin:6px 0">
+            <b>Items total:</b> €${itemsTotal.toFixed(2)}<br>
+            <b>Delivery fee:</b> €${delFee.toFixed(2)} (${includeDelivery ? 'included' : 'not included'})<br>
+            <b>To pay:</b> €${payable.toFixed(2)} ${escapeHtml(data.currency || CURRENCY || 'EUR')}
+          </p>
 
-      <p><b>Order summary</b></p>
-      <div style="padding:10px;border:1px solid #eee;border-radius:8px;margin-bottom:10px;white-space:pre-line">
-        ${escapeHtml(itemsPretty)}
-      </div>
+          ${(revLink || satLink) ? `
+            <p style="margin:12px 0 8px"><b>Pay now</b></p>
+            ${revLink ? `<p style="margin:4px 0"><a href="${revLink}">Pay with Revolut (€${payable.toFixed(2)})</a></p>` : ``}
+            ${satLink ? `<p style="margin:4px 0"><a href="${satLink}">Pay with Satispay (€${payable.toFixed(2)})</a></p>` : ``}
+          ` : ``}
 
-      <p style="margin:6px 0">
-        <b>Items total:</b> €${itemsTotal.toFixed(2)}<br>
-        <b>Delivery fee:</b> €${delFee.toFixed(2)} (${includeDelivery ? 'included' : 'not included'})<br>
-        <b>To pay:</b> €${payable.toFixed(2)} ${escapeHtml(data.currency || CURRENCY || 'EUR')}
-      </p>
+          <p style="margin-top:14px;color:#666">If any detail is wrong, just reply to this email.</p>
+        </div>
+      `;
 
-      ${ (revLink || satLink) ? `
-        <p style="margin:12px 0 8px"><b>Pay now</b></p>
-        ${revLink ? `<p style="margin:4px 0"><a href="${revLink}">Pay with Revolut (€${payable.toFixed(2)})</a></p>` : ``}
-        ${satLink ? `<p style="margin:4px 0"><a href="${satLink}">Pay with Satispay (€${payable.toFixed(2)})</a></p>` : ``}
-      ` : ``}
-
-      <p style="margin-top:14px;color:#666">If any detail is wrong, just reply to this email.</p>
-    </div>
-  `;
-
-  MailApp.sendEmail({
-    to: customerEmail,
-    subject: `We received your order – ${id}`,
-    htmlBody: clientHtml,
-    name: (typeof FROM_NAME !== 'undefined' ? FROM_NAME : undefined),
-    replyTo: (typeof REPLY_TO !== 'undefined' ? REPLY_TO : undefined)
-  });
-})();
-
-
+      MailApp.sendEmail({
+        to: customerEmail,
+        subject: `We received your order – ${id}`,
+        htmlBody: clientHtml,
+        name: FROM_NAME,
+        replyTo: REPLY_TO
+      });
+    })();
 
     return ContentService
       .createTextOutput(JSON.stringify({ ok:true, id }))
