@@ -71,3 +71,4 @@ window.PAY = {
     // satispay: 'https://satispay.me/{tag}?amount={amount}'
   }
 };
+
