@@ -57,7 +57,7 @@ window.PAY = {
 
   // TODO: put your real handles here
   revolutUser: 'ibrahip44g',    // e.g. revolut.me/yourrevolut
-  satispayTag: 'yoursatispay',   // e.g. tag.satispay.com/yoursatispay
+  satispayTag: 'd1ef756d-148f-4a18-90f5-15d5faa52362',   // e.g. tag.satispay.com/yoursatispay
 
   // URL templates — keep {amount}, {user}, {tag}, {cur}
   templates: {
