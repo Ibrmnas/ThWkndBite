@@ -1,76 +1,149 @@
-const SHEET_ID     = '1JK3ybIsYrMhb3PifwmedKbQcY5Jy6IZnucRjY_Xc5aw';
+/** ---- CONFIG ---- **/
+const SHEET_ID     = '1JK3ybIsYrMhb3PifwmedKbQcY5Jy6IZnucRjY_Xc5aw';     // e.g. 1AbC... from the Sheet URL
 const SHEET_NAME   = 'Orders';
 const NOTIFY_EMAIL = 'thewkndbitetorino@gmail.com';
-const TZ = 'Europe/Rome';
+const TZ           = 'Europe/Rome';
 
+// (Optional) for quick pay links in the email:
+const REVOLUT_USER = 'yourrevolut';     // e.g. revolut.me/yourrevolut
+const SATISPAY_TAG = 'yoursatispay';    // e.g. tag.satispay.com/yoursatispay
+const CURRENCY     = 'EUR';
+
+/** ---- HELPERS ---- **/
 function escapeHtml(s){
-  return String(s || '').replace(/[&<>"']/g, m => ({
-    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-  }[m]));
+  return String(s || '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;', "'":'&#39;'}[m]));
+}
+function appendByHeader_(sheet, obj){
+  const lastCol = sheet.getLastColumn() || 1;
+  const headers = sheet.getRange(1,1,1,lastCol).getValues()[0];
+  const row = headers.map(h => (Object.prototype.hasOwnProperty.call(obj, h) ? obj[h] : ''));
+  sheet.appendRow(row);
+}
+function ensureHeaders_(sheet, headersWanted){
+  const lastCol = sheet.getLastColumn() || 0;
+  const existing = lastCol ? sheet.getRange(1,1,1,lastCol).getValues()[0] : [];
+  let col = existing.length;
+  headersWanted.forEach(h => {
+    if (!existing.includes(h)){
+      sheet.insertColumnAfter(Math.max(col,1));
+      col = sheet.getLastColumn();
+      sheet.getRange(1, col).setValue(h);
+      existing.push(h);
+    }
+  });
 }
 
-function doGet() {
-  return ContentService.createTextOutput(
-    JSON.stringify({ ok:true, ping:'TheWeekendBite', time:new Date() })
-  ).setMimeType(ContentService.MimeType.JSON);
-}
-
-function doPost(e) {
-  try {
+/** ---- API ---- **/
+function doPost(e){
+  try{
     const raw  = (e && e.postData) ? e.postData.contents : '{}';
     const data = JSON.parse(raw || '{}');
-    if (data.hp && String(data.hp).trim() !== '') return json({ok:false,error:'spam'});
+
+    // honeypot
+    if (data.hp && String(data.hp).trim() !== '') {
+      return ContentService.createTextOutput(JSON.stringify({ok:false, error:'spam'})).setMimeType(ContentService.MimeType.JSON);
+    }
 
     const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName(SHEET_NAME);
     if (!sheet) throw new Error('Missing sheet "' + SHEET_NAME + '"');
 
+    // columns we want to maintain
+    const HEADERS = [
+      'Timestamp','Order ID','Name','Phone','Email','Address',
+      'Items JSON','Items Total','Delivery Fee','Include Delivery',
+      'Payable Total','Currency','Payment Method','Notes','Allergies','Lang','UA'
+    ];
+    ensureHeaders_(sheet, HEADERS);
+
+    // server ts & id
     const ts = new Date();
     const id = 'WB-' + Utilities.formatDate(ts, TZ, 'yyyyMMdd-HHmmss') + '-' +
                Math.floor(Math.random()*1000).toString().padStart(3,'0');
 
     const items = Array.isArray(data.items) ? data.items : [];
-    const total = items.reduce((s, it) => s + (Number(it.price)||0) * (Number(it.qty)||0), 0);
-    const allergies = (data.allergies || '').toString().trim();
+    // Recompute base items total on server (trust but verify)
+    const itemsTotal = items.reduce((s,it)=> s + (Number(it.price)||0) * (Number(it.qty)||0), 0);
+    const delFee = Number(data.delivery_fee || 0);
+    const includeDelivery = !!data.include_delivery;
+    const payable = includeDelivery ? (itemsTotal + delFee) : itemsTotal;
 
-    sheet.appendRow([
-      Utilities.formatDate(ts, TZ, 'yyyy-MM-dd HH:mm:ss'), // Timestamp
-      id,                                                  // Order ID
-      data.name || '',                                     // Name
-      data.phone || '',                                    // Phone
-      data.email || '',
-      data.address || '',                                  // Address
-      JSON.stringify(items),                               // Items JSON
-      Number(total.toFixed(2)),                            // EstimatedTotal
-      data.notes || '',                                    // Notes
-      allergies,                                           // Allergies
-      data.lang || '',                                     // Language
-      data.ua || ''                                        // UserAgent
-    ]);
-
-    const summary = items.map(it => `- ${it.name} — ${it.qty} kg @ €${it.price}/kg`).join('\n');
-    MailApp.sendEmail({
-      to: NOTIFY_EMAIL,
-      subject: `New Order: ${id} (€${total.toFixed(2)})`,
-      htmlBody: `
-        <b>${id}</b><br>
-        <b>Name:</b> ${escapeHtml(data.name)}<br>
-        <b>Phone:</b> ${escapeHtml(data.phone)}<br>
-        <b>Email:</b> ${escapeHtml(data.email || '')}<br>
-        <b>Address:</b> ${escapeHtml(data.address)}<br>
-        <b>Notes:</b> ${escapeHtml(data.notes || '')}<br>
-        <b>Allergies:</b> ${escapeHtml(allergies)}<br>
-        <pre>${escapeHtml(summary)}</pre>
-        <b>Estimated Total:</b> €${total.toFixed(2)}
-      `
+    // write row by header name
+    appendByHeader_(sheet, {
+      'Timestamp'     : Utilities.formatDate(ts, TZ, 'yyyy-MM-dd HH:mm:ss'),
+      'Order ID'      : id,
+      'Name'          : data.name || '',
+      'Phone'         : data.phone || '',
+      'Email'         : data.email || '',
+      'Address'       : data.address || '',
+      'Items JSON'    : JSON.stringify(items),
+      'Items Total'   : Number(itemsTotal.toFixed(2)),
+      'Delivery Fee'  : Number(delFee.toFixed(2)),
+      'Include Delivery': includeDelivery ? 'yes' : 'no',
+      'Payable Total' : Number(payable.toFixed(2)),
+      'Currency'      : (data.currency || CURRENCY || 'EUR'),
+      'Payment Method': (data.pay_method || 'none'),
+      'Notes'         : data.notes || '',
+      'Allergies'     : data.allergies || '',
+      'Lang'          : data.lang || '',
+      'UA'            : data.ua || ''
     });
 
-    return json({ ok:true, id });
-  } catch (err) {
-    return json({ ok:false, error:String(err) });
-  }
-}
+    // build email summary
+    const itemsLines = items.map(it =>
+      `- ${escapeHtml(it.name)} — ${escapeHtml(it.qty)} kg @ €${escapeHtml(it.price)}/kg`
+    ).join('<br>');
 
-function json(obj){ 
-  return ContentService.createTextOutput(JSON.stringify(obj))
-    .setMimeType(ContentService.MimeType.JSON);
+    const revolutLink = REVOLUT_USER
+      ? `https://revolut.me/${encodeURIComponent(REVOLUT_USER)}?amount=${payable.toFixed(2)}&currency=${encodeURIComponent(CURRENCY)}`
+      : '';
+    const satispayLink = SATISPAY_TAG
+      ? `https://tag.satispay.com/${encodeURIComponent(SATISPAY_TAG)}?amount=${payable.toFixed(2)}`
+      : '';
+
+    const html = `
+      <div style="font-family:Arial,Helvetica,sans-serif">
+        <h3 style="margin:0 0 8px">New Order: ${escapeHtml(id)}</h3>
+        <p><b>Name:</b> ${escapeHtml(data.name)}<br>
+           <b>Phone:</b> ${escapeHtml(data.phone)}<br>
+           <b>Email:</b> ${escapeHtml(data.email || '')}<br>
+           <b>Address:</b> ${escapeHtml(data.address)}</p>
+
+        <p><b>Items:</b><br>${itemsLines || '(none)'}</p>
+
+        <p>
+          <b>Items total:</b> €${itemsTotal.toFixed(2)}<br>
+          <b>Delivery fee:</b> €${delFee.toFixed(2)} (${includeDelivery ? 'included' : 'not included'})<br>
+          <b>Payable total:</b> €${payable.toFixed(2)} ${escapeHtml(data.currency || CURRENCY || 'EUR')}<br>
+          <b>Payment method:</b> ${escapeHtml(data.pay_method || 'none')}
+        </p>
+
+        ${ (revolutLink || satispayLink) ? `
+        <p><b>Quick pay:</b><br>
+          ${revolutLink ? `<a href="${revolutLink}">Revolut for €${payable.toFixed(2)}</a><br>` : ``}
+          ${satispayLink ? `<a href="${satispayLink}">Satispay for €${payable.toFixed(2)}</a>` : ``}
+        </p>` : ``}
+
+        <p><b>Notes:</b> ${escapeHtml(data.notes || '')}<br>
+           <b>Allergies:</b> ${escapeHtml(data.allergies || '')}</p>
+
+        <p style="color:#888"><b>Lang:</b> ${escapeHtml(data.lang || '')}<br>
+           <b>UA:</b> ${escapeHtml(data.ua || '')}</p>
+      </div>
+    `;
+
+    MailApp.sendEmail({
+      to: NOTIFY_EMAIL,
+      subject: `New Order: ${id} (Payable €${payable.toFixed(2)})`,
+      htmlBody: html
+    });
+
+    return ContentService
+      .createTextOutput(JSON.stringify({ ok:true, id }))
+      .setMimeType(ContentService.MimeType.JSON);
+
+  } catch(err){
+    return ContentService
+      .createTextOutput(JSON.stringify({ ok:false, error:String(err) }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
 }
