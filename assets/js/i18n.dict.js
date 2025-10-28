@@ -44,6 +44,7 @@ window.I18N_DICT = {
     "pay.satispay": "Pay with Satispay",
     "order.includeDelivery":"Include delivery (€2)",
     "order.toPay":"To pay",
+    "order.payEmailInfo": "After you place your order, you’ll receive an email with payment methods (Revolut / Satispay). Please pay using the link in that email. We’ll confirm your order once the payment is received.",
   },
   "it": {
     "nav.home": "Home",
@@ -90,5 +91,6 @@ window.I18N_DICT = {
     "pay.satispay": "Paga con Satispay",
     "order.includeDelivery":"Includi consegna (€2)",
     "order.toPay":"Da pagare",
+    "order.payEmailInfo": "Dopo aver inviato l’ordine, riceverai un’email con i metodi di pagamento (Revolut / Satispay). Effettua il pagamento dal link nell’email. Confermeremo l’ordine quando riceveremo il pagamento."
   }
 };
