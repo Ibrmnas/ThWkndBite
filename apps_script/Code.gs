@@ -192,6 +192,9 @@ function doPost(e){
             <b>To pay:</b> €${payable.toFixed(2)} ${escapeHtml(data.currency || CURRENCY || 'EUR')}
           </p>
 
+          <p><b>How to pay:</b> Please complete payment using one of the links below.
+           We’ll confirm your order once the payment is received.</p>
+
           ${(revLink || satLink) ? `
             <p style="margin:12px 0 8px"><b>Pay now</b></p>
             ${revLink ? `<p style="margin:4px 0"><a href="${revLink}">Pay with Revolut (€${payable.toFixed(2)})</a></p>` : ``}
