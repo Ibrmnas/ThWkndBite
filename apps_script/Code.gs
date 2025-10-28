@@ -104,11 +104,13 @@ function doPost(e){
     if (prettyCol > 0) sheet.getRange(lastRow, prettyCol).setWrap(true);
 
     // build email summary (admin)
-    const itemsLines = items.map(it =>
-      `- ${escapeHtml(it.name)} — ${escapeHtml(it.qty)} kg @ €${escapeHtml(it.price)}/kg`
-      const note = it.notes ? ` <span style="color:#555;">(<b>note:</b> ${escapeHtml(it.notes)})</span>` : '';
-      return base + note;
-    ).join('<br>');
+    const itemsLines = items.map(it => {
+    const base = `- ${escapeHtml(it.name)} — ${escapeHtml(it.qty)} kg @ €${escapeHtml(it.price)}/kg`;
+    const note = it.notes ? ` <span style="color:#555;">(<b>note:</b> ${escapeHtml(it.notes)})</span>` : '';
+    return base + note;
+  }).join('<br>');
+
+
 
     const revolutLink = REVOLUT_USER
       ? `https://revolut.me/${encodeURIComponent(REVOLUT_USER)}?amount=${payable.toFixed(2)}&currency=${encodeURIComponent(CURRENCY)}`
