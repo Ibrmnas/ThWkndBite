@@ -246,6 +246,13 @@
     }
 
     const allergies = (document.getElementById('c-allergies')?.value || '').trim();
+    const includeDelivery = !!document.getElementById('include-delivery')?.checked;
+    const deliveryFee     = includeDelivery ? Number(window.SITE_CONFIG?.delivery?.fee || 0) : 0;
+    const baseTotal       = getBaseTotal ? getBaseTotal() : 0;       // items-only total
+    const payableTotal    = getPayableTotal ? getPayableTotal() : baseTotal + deliveryFee;
+    const payMethod       = (typeof pendingPay !== 'undefined' && pendingPay) ? pendingPay : 'none';
+    const currency        = window.PAY?.currency || 'EUR';
+
 
     const payload = {
       name: document.getElementById('c-name').value.trim(),
@@ -255,6 +262,12 @@
       notes: (document.getElementById('c-notes').value || '').trim(),
       allergies,
       items,
+      include_delivery: includeDelivery,
+      delivery_fee: deliveryFee,
+      base_total: Number(baseTotal.toFixed(2)),
+      payable_total: Number(payableTotal.toFixed(2)),
+      currency,
+      pay_method: payMethod,
       lang: document.documentElement.lang || 'en',
       ua: navigator.userAgent,
       hp: document.getElementById('hp-field')?.value || ''
