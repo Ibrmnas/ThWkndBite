@@ -8,7 +8,7 @@ const REPLY_TO  = 'thewkndbitetorino@gmail.com'; // replies go here
 
 // (Optional) for quick pay links in the email:
 const REVOLUT_USER = 'ibrahip44g';     // e.g. revolut.me/yourrevolut
-const SATISPAY_TAG = 'yoursatispay';    // e.g. tag.satispay.com/yoursatispay
+const SATISPAY_TAG = 'd1ef756d-148f-4a18-90f5-15d5faa52362';    // e.g. tag.satispay.com/yoursatispay
 const CURRENCY     = 'EUR';
 
 /** ---- HELPERS ---- **/
