@@ -69,10 +69,11 @@ function doPost(e){
     const includeDelivery = !!data.include_delivery;
     const payable = includeDelivery ? (itemsTotal + delFee) : itemsTotal;
 
-    // NEW: build a readable multi-line list
+    // READABLE multi-line list (saved in the sheet, used in client email) — includes item notes when present
     const itemsPretty = items.map(it => {
-      const lt = (Number(it.price)||0) * (Number(it.qty)||0);
-      return `${it.name} — ${it.qty} kg @ €${it.price}/kg = €${lt.toFixed(2)}`;
+      const lt   = (Number(it.price)||0) * (Number(it.qty)||0);
+      const note = it.notes ? ` | note: ${it.notes}` : '';
+      return `${it.name} — ${it.qty} kg @ €${it.price}/kg = €${lt.toFixed(2)}${note}`;
     }).join('\n');
 
     // write row by header name
@@ -84,7 +85,7 @@ function doPost(e){
       'Email'           : data.email || '',
       'Address'         : data.address || '',
       'Items JSON'      : JSON.stringify(items),
-      'Items (pretty)'  : itemsPretty,                                  // NEW
+      'Items (pretty)'  : itemsPretty,
       'Items Total'     : Number(itemsTotal.toFixed(2)),
       'Delivery Fee'    : Number(delFee.toFixed(2)),
       'Include Delivery': includeDelivery ? 'yes' : 'no',
@@ -97,20 +98,18 @@ function doPost(e){
       'UA'              : data.ua || ''
     });
 
-    // Optional: wrap the "Items (pretty)" cell so lines are visible
+    // Wrap the "Items (pretty)" cell so multiple lines are visible
     const lastRow = sheet.getLastRow();
-    const headers = sheet.getRange(1,1,1,sheet.getLastColumn()).getValues()[0];
-    const prettyCol = headers.indexOf('Items (pretty)') + 1;
+    const hdrRow  = sheet.getRange(1,1,1,sheet.getLastColumn()).getValues()[0];
+    const prettyCol = hdrRow.indexOf('Items (pretty)') + 1;
     if (prettyCol > 0) sheet.getRange(lastRow, prettyCol).setWrap(true);
 
-    // build email summary (admin)
+    // ADMIN EMAIL: bullet list with per-item notes (if any)
     const itemsLines = items.map(it => {
-    const base = `- ${escapeHtml(it.name)} — ${escapeHtml(it.qty)} kg @ €${escapeHtml(it.price)}/kg`;
-    const note = it.notes ? ` <span style="color:#555;">(<b>note:</b> ${escapeHtml(it.notes)})</span>` : '';
-    return base + note;
-  }).join('<br>');
-
-
+      const base = `- ${escapeHtml(it.name)} — ${escapeHtml(it.qty)} kg @ €${escapeHtml(it.price)}/kg`;
+      const note = it.notes ? ` <span style="color:#555;">(<b>note:</b> ${escapeHtml(it.notes)})</span>` : '';
+      return base + note;
+    }).join('<br>');
 
     const revolutLink = REVOLUT_USER
       ? `https://revolut.me/${encodeURIComponent(REVOLUT_USER)}?amount=${payable.toFixed(2)}&currency=${encodeURIComponent(CURRENCY)}`
@@ -158,10 +157,10 @@ function doPost(e){
       replyTo: REPLY_TO
     });
 
-    // --- Send confirmation email to the customer (if provided & valid)
+    // --- Customer confirmation (uses Items (pretty), which now includes notes)
     (function sendClientEmail(){
       var customerEmail = (data.email || '').trim();
-      if (!customerEmail) return;  // no email provided
+      if (!customerEmail) return;
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerEmail)) return;
 
       var revLink = REVOLUT_USER
