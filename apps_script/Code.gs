@@ -106,6 +106,8 @@ function doPost(e){
     // build email summary (admin)
     const itemsLines = items.map(it =>
       `- ${escapeHtml(it.name)} — ${escapeHtml(it.qty)} kg @ €${escapeHtml(it.price)}/kg`
+      const note = it.notes ? ` <span style="color:#555;">(<b>note:</b> ${escapeHtml(it.notes)})</span>` : '';
+      return base + note;
     ).join('<br>');
 
     const revolutLink = REVOLUT_USER
