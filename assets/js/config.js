@@ -67,7 +67,7 @@ window.PAY = {
     // revolut: 'https://revolut.me/{user}?amount={amount}&currency={cur}',
 
     // Satispay tag link (adjust to satispay.me if your account uses that)
-    satispay: 'https://tag.satispay.com/{tag}?amount={amount}'
+    satispay: 'https://tag.satispay.com/d1ef756d-148f-4a18-90f5-15d5faa52362?amount={amount}'
     // satispay: 'https://satispay.me/{tag}?amount={amount}'
   }
 };
